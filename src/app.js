@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const { NODE_ENV, CLIENT_ORIGIN} = require('./config');
+const users = require('./users.js');
 
 const app = express();
 
@@ -18,6 +19,10 @@ app.use(
     origin: CLIENT_ORIGIN
   })
 );
+
+app.get('/api/users', (req, res) => {
+  res.json(users);
+})
 
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
