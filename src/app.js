@@ -40,6 +40,12 @@ app.get('/api/users', (req, res) => {
   res.json(users);
 })
 
+app.post('/api/users', (req, res) => {
+
+
+  res.status(204).end();
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
