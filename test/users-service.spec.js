@@ -41,7 +41,7 @@ describe(`Users service object`, function() {
         });
 
         it(`getAllUsers() resolves all users from 'users' table`, () => {
-            return UsersService.getAllArticles(db)
+            return UsersService.getAllUsers(db)
                 .then(actual => {
                     expect(actual).to.eql(testUsers.map(user => ({
                                ...user,

@@ -1,5 +1,5 @@
 const UsersService = {
-    getAllArticles(knex){
+    getAllUsers(knex){
         return knex.select('*')
             .from('users')
     }
