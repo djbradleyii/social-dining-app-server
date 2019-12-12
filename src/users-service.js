@@ -1,6 +1,7 @@
 const UsersService = {
-    getAllArticles(){
-        return 'all the articles!!'
+    getAllArticles(knex){
+        return knex.select('*')
+            .from('users')
     }
 };
 
