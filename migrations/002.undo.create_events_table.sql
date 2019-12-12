@@ -1,0 +1,2 @@
+DROP TYPE IF EXISTS event_purpose;
+DROP TABLE IF EXISTS events;
