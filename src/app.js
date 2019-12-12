@@ -4,9 +4,15 @@ const morgan = require('morgan');
 const cors = require('cors');
 const helmet = require('helmet');
 const winston = require('winston');
-const { NODE_ENV, CLIENT_ORIGIN} = require('./config');
+const knex = require('knex');
+const { NODE_ENV, CLIENT_ORIGIN } = require('./config');
 
 const app = express();
+
+const knexInstance = knex({
+  client: 'pg',
+  connection: process.env.DB_URL,
+})
 
 const morganOption = (NODE_ENV === 'production')
   ? 'tiny'
