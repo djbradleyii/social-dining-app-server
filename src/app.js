@@ -36,6 +36,10 @@ app.use(function validateBearerToken(req, res, next){
   next();
 }); */
 
+app.get('/api/users', (req, res) => {
+  res.json(users);
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
