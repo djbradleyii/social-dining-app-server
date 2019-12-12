@@ -24,7 +24,11 @@ const UsersService = {
             .where({id})
             .delete()
     },
-
+    updateUserInfo(knex, id, userUpdates){
+        return knex('users')
+            .where({ id })
+            .update(userUpdates)
+    }
 };
 
 module.exports = UsersService;
