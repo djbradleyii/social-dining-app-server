@@ -66,6 +66,10 @@ app.delete('/api/users/:userId', (req, res) => {
   const { userId } = req.params; //parseInt() for integers
 })
 
+app.patch('/api/users/:userId', (req, res) => {
+  const { userId } = req.params; //parseInt() for integers
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
