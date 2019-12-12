@@ -42,7 +42,23 @@ app.get('/api/users', (req, res) => {
 
 app.post('/api/users', (req, res) => {
 
+  const { fname, lname, email, password, dob, status, occupation, gender } = req.body;
+  
+  
+  // password length
+  if (password.length < 8 || password.length > 36) {
+    return res
+      .status(400)
+      .send('Password must be between 8 and 36 characters');
+  }
 
+  // password contains digit, using a regex here
+  if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
+    return res
+      .status(400)
+      .send('Password must be contain at least one digit');
+  }
+  
   res.status(204).end();
 })
 
