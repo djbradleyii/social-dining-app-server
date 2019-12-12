@@ -27,7 +27,7 @@ CREATE TABLE users (
     password VARCHAR(36) NOT NULL,
     marital_status marital_choices NOT NULL,
     occupation VARCHAR(100),
-    summary VARCHAR(255),
+    bio VARCHAR(255),
     gender gender_choices NOT NULL,
     date_created TIMESTAMP DEFAULT now() NOT NULL
 );
