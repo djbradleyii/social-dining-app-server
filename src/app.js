@@ -58,8 +58,12 @@ app.post('/api/users', (req, res) => {
       .status(400)
       .send('Password must be contain at least one digit');
   }
-  
+
   res.status(204).end();
+})
+
+app.delete('/api/users/:userId', (req, res) => {
+  const { userId } = req.params; //parseInt() for integers
 })
 
 app.get('/api/*', (req, res) => {
