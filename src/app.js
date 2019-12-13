@@ -5,8 +5,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const winston = require('winston');
 const { NODE_ENV, CLIENT_ORIGIN } = require('./config');
-const UsersService = require('./users-service');
-const EventsService = require('./events-service');
+const usersRouter = require('./users/users-router');
+const eventsRouter = require('./events/events-router');
 
 const app = express();
 
@@ -29,7 +29,6 @@ if (NODE_ENV !== 'production') {
   }));
 }
 
-
 app.use(morgan(morganOption));
 app.use(express.json());
 app.use(helmet());
@@ -39,9 +38,7 @@ app.use(
   })
 );
 
-/* 
-
-REQUEST VALIDATION
+/* REQUEST VALIDATION
 
 app.use(function validateBearerToken(req, res, next){
   const apiToken = process.env.API_TOKEN;
@@ -54,73 +51,8 @@ app.use(function validateBearerToken(req, res, next){
   next();
 }); */
 
-app.get('/api/users', (req, res) => {
-  UsersService.getAllUsers(req.app.get('db'))
-  .then(users => res.json(users))
-})
-
-app.post('/api/users', (req, res) => {
-
-  const { fname, lname, dob, email, password, marital_status, occupation, bio, gender } = req.body;
-  
-  
-  for (const [key, value] of Object.entries(newUser)) {
-    if (value == null) {
-      return res.status(400).json({
-        error: { message: `Missing '${key}' in request body` }
-      })
-    }
-  }
-
-
-  // password length
-  if (password.length < 8 || password.length > 36) {
-    return res
-      .status(400)
-      .send('Password must be between 8 and 36 characters');
-  }
-
-  // password contains digit, using a regex here
-  if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
-    return res
-      .status(400)
-      .send('Password must be contain at least one digit');
-  }
-
-  res.status(204).end();
-})
-
-app.delete('/api/users/:user_id', (req, res) => {
-  const { user_id } = req.params; //parseInt() for integers
-})
-
-app.patch('/api/users/:user_id', (req, res) => {
-  const { user_id } = req.params; //parseInt() for integers
-})
-
-/* EVENTS ENDPOINTS */
-app.get('/api/events', (req, res) => {
-  res.json(users);
-})
-
-
-app.post('/api/events', (req, res) => {
-  
-  res.status(204).end();
-})
-
-app.delete('/api/events/:eventId', (req, res) => {
-  const { eventId } = req.params; //parseInt() for integers
-})
-
-app.patch('/api/events/:eventId', (req, res) => {
-  const { eventId } = req.params; //parseInt() for integers
-})
-
-
-app.get('/api/*', (req, res) => {
-    res.json({ok: true});
-});
+app.use(usersRouter);
+app.use(eventsRouter);
 
 app.use(function errorHandler(error, req, res, next) {
        let response;
