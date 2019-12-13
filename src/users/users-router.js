@@ -1,5 +1,4 @@
 const express = require('express')
-
 const usersRouter = express.Router()
 const bodyParser = express.json()
 
@@ -90,7 +89,7 @@ usersRouter
     .catch(next)
   })
   .patch(bodyParser, (req, res, next) => {
-    const { user_id } = req.params; //parseInt() for integers
+    const { user_id } = req.params;
     const {fname, lname, dob, email, password, marital_status, occupation, bio, gender} = req.body;
     const requiredFields = { fname, lname, dob, email, password, marital_status, gender };
   
@@ -124,7 +123,26 @@ usersRouter
     .catch(next);
   })
   .delete((req, res, next) => {
-    // move implementation logic into here
+    const { user_id } = parseInt(req.params);
+
+    if(!user_id){
+      logger.error(`User id is required.`);
+      return res.status(400).send('Invalid data')
+    }
+  
+    UsersService.deleteUser(res.app.get('db'), user_id)
+      .then( (count) => {
+        if(count === 0){
+          return res.status(404).json({
+            error: { message: `Bookmark does not exist`}
+          })
+        }
+        res
+        .status(204)
+        .end();
+      })
+      .catch(next)
+      logger.info(`User with user_id ${user_id} deleted.`); 
   })
 
 module.exports = usersRouter;
