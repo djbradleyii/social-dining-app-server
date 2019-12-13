@@ -26,7 +26,36 @@ eventsRouter
     .catch(next)
   })
   .post(bodyParser, (req, res) => {
-    // move implementation logic into here
+    const { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
+    const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
+    
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (value == null) {
+        return res.status(400).json({
+          error: { message: `Missing '${key}' in request body` }
+        })
+      }
+    }  
+  
+     const newEvent = {
+      organizer,
+      title,
+      event_purpose,
+      restaurant,
+      address,
+      date,
+      time,
+      description,
+      singles_only
+    }
+  
+  
+    EventsService.insertEvent(req.app.get('db'), newEvent)
+    .then(eventId => {
+      res
+      .status(204).end();
+    })
+    .catch(next);
   })
 
 eventsRouter
