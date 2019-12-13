@@ -49,41 +49,41 @@ describe(`Events service object`, function() {
     let testEvents = [
         {
             id: 1,
-            fname : "Rick",
-            lname : "Mcqueeney",
-            dob : new Date('10/31/1983'),
-            email : "rmcqueeney@gmail.com",
-            password : "password1",
-            marital_status : "Married",
-            occupation : "Marketing",
-            gender : "Male",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+            organizer : 1,
+            title : "Event 1 Title",
+            purpose : "Singles Night",
+            restaurant : "Sonora Town",
+            address : "321 4th St, Los Angeles, CA 90003",
+            date : new Date('10/31/2020'),
+            time : "13:00",
+            description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
+            singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
         },
         {
             id: 2,
-            fname : "Summer",
-            lname : "Lane",
-            dob : new Date('02/02/1972'),
-            email : "slane@gmail.com",
-            password : "password2",
-            marital_status : "Married",
-            occupation : "Fashion Designer",
-            gender : "Female",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+            organizer : 3,
+            title : "Event 2 Title",
+            purpose : "Game Night",
+            restaurant : "Button Mash",
+            address : "123 2nd St, Los Angeles, CA 90001",
+            date : new Date('04/03/2020'),
+            time : "13:00",
+            description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
+            singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
         },
         {
             id: 3,
-            fname : "Larry",
-            lname : "Savage",
-            dob : new Date('06/10/1975'),
-            email : "lsavage@aol.com",
-            password : "password3",
-            marital_status : "Widow",
-            occupation : "Construction",
-            gender : "Male",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+            organizer : 1,
+            title : "Event 3 Title",
+            purpose : "Networking",
+            restaurant : "Water Grill",
+            address : "30923 Union Ave, Los Angeles, CA 90301",
+            date : new Date('03/03/2020'),
+            time : "13:00",
+            description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
+            singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
         },
     ];
@@ -95,82 +95,100 @@ describe(`Events service object`, function() {
         })
     });
 
+
+    before(()=>db('users').dropForeign('user_id'));
     before(() => db('users').truncate());
+    before(() => db('events').truncate());
 
     afterEach(() => db('users').truncate());
+    afterEach(() => db('events').truncate());
 
     after(() => db.destroy());
 
-    context(`Given 'users' has data`, () => {
+    context(`Given 'events' has data`, () => {
         beforeEach(() => {
             return db
                 .into('users')
                 .insert(testUsers)
         });
 
-        it(`getAllUsers() resolves all users from 'users' table`, () => {
-            return UsersService.getAllUsers(db)
+        beforeEach(() => {
+            return db
+                .into('events')
+                .insert(testEvents)
+        });
+
+        it(`getAllEvents() resolves all events from 'events' table`, () => {
+            return EventsService.getAllEvents(db)
                 .then(actual => {
-                    expect(actual).to.eql(testUsers.map(user => ({
-                               ...user,
-                               dob: new Date(user.dob),
-                               date_created: new Date(user.date_created)
+                    expect(actual).to.eql(testEvents.map(event => ({
+                               ...event,
+                               date: new Date(event.date),
+                               date_created: new Date(event.date_created)
                     })))
                 })
         })
 
-        it(`getUserByID() resolves a user by id from 'user' table`, () => {
+        it(`getEventByID() resolves an event by id from 'event' table`, () => {
             const thirdId = 3;
-            const thirdTestUser = testUsers[thirdId - 1];
-            return UsersService.getUserById(db, thirdId)
+            const thirdTestEvent = testEvent[thirdId - 1];
+            return EventsService.getEventById(db, thirdId)
                 .then(actual => {
                     expect(actual).to.eql({
                         id: thirdId,
-                        fname: thirdTestUser.fname,
-                        lname: thirdTestUser.lname,
-                        dob: new Date(thirdTestUser.dob),
-                        email: thirdTestUser.email,
-                        password: thirdTestUser.password,
-                        marital_status: thirdTestUser.marital_status,
-                        occupation: thirdTestUser.occupation,
-                        gender: thirdTestUser.gender,
-                        bio: thirdTestUser.bio,
-                        date_created: new Date(thirdTestUser.date_created)
+                        organizer: thirdTestEvent.organizer,
+                        title: thirdTestEvent.title,
+                        purpose: ThirdTestEvent.purpose,
+                        restaurant: thirdTestEvent.restaurant,
+                        address: thirdTestEvent.address,
+                        date: new Date(thirdTestEvent.date),
+                        time: thirdTestEvent.time,
+                        description: thirdTestEvent.description,
+                        singles_only: thirdTestEvent.singles_only,
+                        date_created: new Date(thirdTestEvent.date_created)
                     })
                 })
         })
 
-        it(`deleteUser() removes a user by id from 'user' table`, () => {
-            const userId = 3;
-            return UsersService.deleteUser(db, userId)
-                .then(() => UsersService.getAllUsers(db))
-                .then(allUsers => {
-                    const expected = testUsers.filter(user => user.id !== userId);
-                    expect(allUsers).to.eql(expected)
+        it(`deleteEvent() removes a event by id from 'event' table`, () => {
+            const eventId = 3;
+            return EventsService.deleteEvent(db, eventId)
+                .then(() => EventsService.getAllEvents(db))
+                .then(allEvents => {
+                    const expected = testEvents.filter(event => event.id !== eventId);
+                    expect(allEvents).to.eql(expected)
                 })
         })
 
-        it(`updateUserInfo() updates a users information from 'users' table`, () => {
-            const idOfUserToUpdate = 3;
-            const newUserInfo = {
-                bio: "new bio coming soon"
+        it(`updateEventInfo() updates an events information from 'events' table`, () => {
+            const idOfEventToUpdate = 3;
+            const newEventInfo = {
+                title: "Updated Title",
+                purpose: "Social",
+                restaurant: "Updated Restaurant",
+                address : "123 Update St, Norwalk CA 91919",
+                date : new Date('09/23/2020'),
+                time : "04:05 PM",
+                description : "Updated Description",
+                singles_only : FALSE, 
+                date_created: new Date('2019-12-11T16:28:32.615Z')
             };
-            return UsersService.updateUserInfo(db, idOfUserToUpdate, newUserInfo)
-            .then(() => UsersService.getUserById(db, idOfUserToUpdate))
-            .then(user => {
-                expect(user).to.eql({
-                    id: idOfUserToUpdate,
-                    ...user,
-                    bio: newUserInfo.bio
+
+            return EventsService.updateEventInfo(db, idOfEventToUpdate, newEventInfo)
+            .then(() => EventsService.getEventById(db, idOfEventToUpdate))
+            .then(event => {
+                expect(event).to.eql({
+                    id: idOfEventToUpdate,
+                    ...newEventInfo
                 })
             })
         })
     })
 
-    context(`Given 'users' table has no data`, () => {
-        beforeEach(() => db('users').truncate());
+    context.skip(`Given 'events' table has no data`, () => {
+        beforeEach(() => db('events').truncate());
 
-        it(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
+        it(`inserEvents() inserts a new event and resolves the new event with an 'id'`, () => {
             const newUser = {
                 fname : "Samantha",
                 lname : "Lake",
@@ -184,7 +202,7 @@ describe(`Events service object`, function() {
                 date_created: new Date('2019-12-11T16:28:32.615Z')
             }
 
-            return UsersService.insertUser(db, newUser)
+            return EventsService.insertUser(db, newUser)
                 .then(actual => {
                     expect(actual).to.eql({
                         id: 1,
