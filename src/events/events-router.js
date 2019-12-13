@@ -1,5 +1,5 @@
 const express = require('express');
-const EventsService = require('../events-service');
+const EventsService = require('./events-service');
 const eventsRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
