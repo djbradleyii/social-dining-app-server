@@ -2,6 +2,7 @@ const express = require('express');
 const UsersService = require('../users-service');
 const usersRouter = express.Router();
 const bodyParser = express.json();
+const logger = require('../logger');
 
 usersRouter
   .route('/api/users')
