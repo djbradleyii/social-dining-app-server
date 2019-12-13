@@ -63,6 +63,9 @@ eventsRouter
   .get((req, res, next) => {
     // move implementation logic into here
   })
+  .patch((req, res, next) => {
+      
+  })
   .delete((req, res) => {
     // move implementation logic into here
   })
