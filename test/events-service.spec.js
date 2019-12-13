@@ -51,11 +51,11 @@ describe(`Events service object`, function() {
             id: 1,
             organizer : 1,
             title : "Event 1 Title",
-            purpose : "Singles Night",
+            event_purpose : "Singles Night",
             restaurant : "Sonora Town",
             address : "321 4th St, Los Angeles, CA 90003",
             date : new Date('10/31/2020'),
-            time : "13:00",
+            time : "06:00 PM",
             description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
             singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
@@ -64,11 +64,11 @@ describe(`Events service object`, function() {
             id: 2,
             organizer : 3,
             title : "Event 2 Title",
-            purpose : "Game Night",
+            event_purpose : "Game Night",
             restaurant : "Button Mash",
             address : "123 2nd St, Los Angeles, CA 90001",
             date : new Date('04/03/2020'),
-            time : "13:00",
+            time : "06:00 PM",
             description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
             singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
@@ -77,11 +77,11 @@ describe(`Events service object`, function() {
             id: 3,
             organizer : 1,
             title : "Event 3 Title",
-            purpose : "Networking",
+            event_purpose : "Networking",
             restaurant : "Water Grill",
             address : "30923 Union Ave, Los Angeles, CA 90301",
             date : new Date('03/03/2020'),
-            time : "13:00",
+            time : "06:00 PM",
             description : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.",
             singles_only : false, 
             date_created: new Date('2019-12-11T16:28:32.615Z')
@@ -95,13 +95,9 @@ describe(`Events service object`, function() {
         })
     });
 
-
-    before(()=>db('users').dropForeign('user_id'));
     before(() => db('users').truncate());
-    before(() => db('events').truncate());
 
     afterEach(() => db('users').truncate());
-    afterEach(() => db('events').truncate());
 
     after(() => db.destroy());
 
@@ -138,7 +134,7 @@ describe(`Events service object`, function() {
                         id: thirdId,
                         organizer: thirdTestEvent.organizer,
                         title: thirdTestEvent.title,
-                        purpose: ThirdTestEvent.purpose,
+                        event_purpose: ThirdTestEvent.event_purpose,
                         restaurant: thirdTestEvent.restaurant,
                         address: thirdTestEvent.address,
                         date: new Date(thirdTestEvent.date),
@@ -160,62 +156,57 @@ describe(`Events service object`, function() {
                 })
         })
 
-        it(`updateEventInfo() updates an events information from 'events' table`, () => {
+        it(`updateEventById() updates an events information from 'events' table`, () => {
             const idOfEventToUpdate = 3;
-            const newEventInfo = {
+            const eventUpdates = {
                 title: "Updated Title",
-                purpose: "Social",
+                event_purpose: "Social",
                 restaurant: "Updated Restaurant",
                 address : "123 Update St, Norwalk CA 91919",
                 date : new Date('09/23/2020'),
                 time : "04:05 PM",
                 description : "Updated Description",
-                singles_only : FALSE, 
-                date_created: new Date('2019-12-11T16:28:32.615Z')
+                singles_only : false
             };
 
-            return EventsService.updateEventInfo(db, idOfEventToUpdate, newEventInfo)
+            return EventsService.updateEventInfo(db, idOfEventToUpdate, eventUpdates)
             .then(() => EventsService.getEventById(db, idOfEventToUpdate))
             .then(event => {
                 expect(event).to.eql({
                     id: idOfEventToUpdate,
-                    ...newEventInfo
+                    ...eventUpdates
                 })
             })
         })
     })
 
-    context.skip(`Given 'events' table has no data`, () => {
+    context(`Given 'events' table has no data`, () => {
         beforeEach(() => db('events').truncate());
 
-        it(`inserEvents() inserts a new event and resolves the new event with an 'id'`, () => {
-            const newUser = {
-                fname : "Samantha",
-                lname : "Lake",
-                dob : new Date('05/22/1980'),
-                email : "slake@lakescakes.com",
-                password : "lakescakes1",
-                marital_status : "Divorced",
-                occupation : "Baker",
-                gender : "Female",
-                bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-                date_created: new Date('2019-12-11T16:28:32.615Z')
+        it(`insertEvents() inserts a new event and resolves the new event with an 'id'`, () => {
+            const newEvent = {
+                title: "New Event Title",
+                event_purpose: "Social",
+                restaurant: "New Restaurant",
+                address : "123 New St, Norwalk CA 91919",
+                date : new Date('09/23/2020'),
+                time : "04:45 PM",
+                description : "New Description",
+                singles_only : false
             }
 
-            return EventsService.insertUser(db, newUser)
+            return EventsService.insertEvent(db, newEvent)
                 .then(actual => {
                     expect(actual).to.eql({
                         id: 1,
-                        fname: newUser.fname,
-                        lname: newUser.lname,
-                        dob: new Date(newUser.dob),
-                        email: newUser.email,
-                        password: newUser.password,
-                        marital_status: newUser.marital_status,
-                        occupation: newUser.occupation,
-                        gender: newUser.gender,
-                        bio: newUser.bio,
-                        date_created: new Date(newUser.date_created)
+                        title: newEvent.title,
+                        event_purpose: newEvent.event_purpose,
+                        restaurant: newEvent.restaurant,
+                        address: newEvent.address,
+                        date: new Date(newEvent.date),
+                        time: newEvent.time,
+                        description: newEvent.description,
+                        singles_only: newEvent.singles_only
                     })
                 })
         })
