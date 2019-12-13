@@ -1,4 +1,3 @@
-require('dotenv').config();
 const knex = require('knex');
 const UsersService = require('../src/users-service');
 

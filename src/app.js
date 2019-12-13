@@ -87,6 +87,26 @@ app.patch('/api/users/:userId', (req, res) => {
   const { userId } = req.params; //parseInt() for integers
 })
 
+/* EVENTS ENDPOINTS */
+app.get('/api/events', (req, res) => {
+  res.json(users);
+})
+
+
+app.post('/api/events', (req, res) => {
+  
+  res.status(204).end();
+})
+
+app.delete('/api/events/:eventId', (req, res) => {
+  const { eventId } = req.params; //parseInt() for integers
+})
+
+app.patch('/api/events/:eventId', (req, res) => {
+  const { eventId } = req.params; //parseInt() for integers
+})
+
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
