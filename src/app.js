@@ -87,6 +87,11 @@ app.patch('/api/users/:userId', (req, res) => {
   const { userId } = req.params; //parseInt() for integers
 })
 
+/* EVENTS ENDPOINTS */
+app.get('/api/events', (req, res) => {
+  res.json(users);
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
