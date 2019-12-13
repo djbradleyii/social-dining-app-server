@@ -92,6 +92,12 @@ app.get('/api/events', (req, res) => {
   res.json(users);
 })
 
+
+app.post('/api/events', (req, res) => {
+  
+  res.status(204).end();
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
