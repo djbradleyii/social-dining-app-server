@@ -24,7 +24,7 @@ const UsersService = {
             .where({id})
             .delete()
     },
-    updateUserInfo(knex, id, userUpdates){
+    updateUserById(knex, id, userUpdates){
         return knex('users')
             .where({ id })
             .update(userUpdates)
