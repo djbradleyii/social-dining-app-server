@@ -98,6 +98,10 @@ app.post('/api/events', (req, res) => {
   res.status(204).end();
 })
 
+app.delete('/api/events/:eventId', (req, res) => {
+  const { eventId } = req.params; //parseInt() for integers
+})
+
 app.get('/api/*', (req, res) => {
     res.json({ok: true});
 });
