@@ -1,3 +1,5 @@
+DROP TYPE IF EXISTS event_purpose CASCADE;
+
 CREATE TYPE event_purpose AS ENUM(
     'Social',
     'Networking',
