@@ -1,5 +1,5 @@
 const knex = require('knex');
-const UsersService = require('../src/users-service');
+const UsersService = require('../src/users/users-service');
 const { makeUsersArray } = require('./users.fixtures');
 
 describe(`Users service object`, function() {
@@ -89,18 +89,18 @@ describe(`Users service object`, function() {
     context(`Given 'users' table has no data`, () => {
         beforeEach(() => db('users').truncate());
 
-        it(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
+        it.only(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
             const newUser = {
                 fname : "Samantha",
                 lname : "Lake",
-                dob : new Date('05/22/1980'),
+                dob : new Date('05/22/1980').toLocaleString(),
                 email : "slake@lakescakes.com",
                 password : "lakescakes1",
                 marital_status : "Divorced",
                 occupation : "Baker",
                 gender : "Female",
                 bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-                date_created: new Date('2019-12-11T16:28:32.615Z')
+                date_created: new Date('2019-12-11T16:28:32.615Z').toLocaleString()
             }
 
             return UsersService.insertUser(db, newUser)
@@ -109,14 +109,14 @@ describe(`Users service object`, function() {
                         id: 1,
                         fname: newUser.fname,
                         lname: newUser.lname,
-                        dob: new Date(newUser.dob),
+                        dob: new Date(newUser.dob).toLocaleString(),
                         email: newUser.email,
                         password: newUser.password,
                         marital_status: newUser.marital_status,
                         occupation: newUser.occupation,
                         gender: newUser.gender,
                         bio: newUser.bio,
-                        date_created: new Date(newUser.date_created)
+                        date_created: new Date(newUser.date_created).toLocaleString()
                     })
                 })
         })

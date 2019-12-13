@@ -79,7 +79,7 @@ describe('Users Endpoints', function() {
         const newUser = {
             fname: "New",
             lname: "User",
-            dob: new Date("10/31/1983"),
+            dob: new Date("10/31/1983").toLocaleString('en', { timeZone: 'UTC' }),
             email: "newuser@gmail.com",
             password: "password10",
             marital_status: "Single",
@@ -91,6 +91,7 @@ describe('Users Endpoints', function() {
         .post('/api/users')
         .send(newUser)
         .expect(204)
+        //check 21.16 to complete
     })
 })
 })

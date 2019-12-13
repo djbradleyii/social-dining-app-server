@@ -1,5 +1,5 @@
 const knex = require('knex');
-const EventsService = require('../src/events-service');
+const EventsService = require('../src/events/events-service');
 
 describe(`Events service object`, function() {
     let db;
