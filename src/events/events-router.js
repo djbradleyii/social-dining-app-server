@@ -96,7 +96,26 @@ eventsRouter
     .catch(next);
   })
   .delete((req, res) => {
-    // move implementation logic into here
+    const { event_id } = parseInt(req.params); //parseInt() for integers
+
+    if(!event_id){
+      logger.error(`Event id is required.`);
+      return res.status(400).send('Invalid data')
+    }
+  
+    EventsService.deleteEvent(res.app.get('db'), event_id)
+      .then( (count) => {
+        if(count === 0){
+          return res.status(404).json({
+            error: { message: `Bookmark does not exist`}
+          })
+        }
+        res
+        .status(204)
+        .end();
+      })
+      .catch(next)
+      logger.info(`Event with event_id ${event_id} deleted.`);  
   })
 
 module.exports = eventsRouter
