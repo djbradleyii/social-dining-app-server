@@ -1,6 +1,7 @@
-const express = require('express')
-const usersRouter = express.Router()
-const bodyParser = express.json()
+const express = require('express');
+const UsersService = require('./users-service');
+const usersRouter = express.Router();
+const bodyParser = express.json();
 
 usersRouter
   .route('/api/users')
