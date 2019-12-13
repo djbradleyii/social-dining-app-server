@@ -1,56 +1,17 @@
 const knex = require('knex');
 const UsersService = require('../src/users-service');
+const { makeUsersArray } = require('./users.fixtures');
 
 describe(`Users service object`, function() {
     let db;
 
-    let testUsers = [
-        {
-            id: 1,
-            fname : "Rick",
-            lname : "Mcqueeney",
-            dob : new Date('10/31/1983'),
-            email : "rmcqueeney@gmail.com",
-            password : "password1",
-            marital_status : "Married",
-            occupation : "Marketing",
-            gender : "Male",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-            date_created: new Date('2019-12-11T16:28:32.615Z')
-        },
-        {
-            id: 2,
-            fname : "Summer",
-            lname : "Lane",
-            dob : new Date('02/02/1972'),
-            email : "slane@gmail.com",
-            password : "password2",
-            marital_status : "Married",
-            occupation : "Fashion Designer",
-            gender : "Female",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-            date_created: new Date('2019-12-11T16:28:32.615Z')
-        },
-        {
-            id: 3,
-            fname : "Larry",
-            lname : "Savage",
-            dob : new Date('06/10/1975'),
-            email : "lsavage@aol.com",
-            password : "password3",
-            marital_status : "Widow",
-            occupation : "Construction",
-            gender : "Male",
-            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-            date_created: new Date('2019-12-11T16:28:32.615Z')
-        },
-    ];
+    const testUsers = makeUsersArray();
 
     before(() => {
         db = knex({
             client: 'pg',
             connection: process.env.TEST_DB_URL,
-        })
+        });
     });
 
     before(() => db('users').truncate());
@@ -108,12 +69,12 @@ describe(`Users service object`, function() {
                 })
         })
 
-        it(`updateUserInfo() updates a users information from 'users' table`, () => {
+        it(`updateUserById() updates a users information from 'users' table`, () => {
             const idOfUserToUpdate = 3;
             const newUserInfo = {
                 bio: "new bio coming soon"
             };
-            return UsersService.updateUserInfo(db, idOfUserToUpdate, newUserInfo)
+            return UsersService.updateUserById(db, idOfUserToUpdate, newUserInfo)
             .then(() => UsersService.getUserById(db, idOfUserToUpdate))
             .then(user => {
                 expect(user).to.eql({
