@@ -3,6 +3,7 @@ const UsersService = require('./users-service');
 const usersRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
+const xss = require('xss');
 
 usersRouter
   .route('/api/users')
