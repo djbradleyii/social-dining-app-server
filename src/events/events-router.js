@@ -5,7 +5,7 @@ const bodyParser = express.json()
 
 eventsRouter
   .route('/api/events')
-  .get((req, res) => {
+  .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     EventsService.getAllEvents(knexInstance)
     .then(events => { 
@@ -25,7 +25,7 @@ eventsRouter
     })
     .catch(next)
   })
-  .post(bodyParser, (req, res) => {
+  .post(bodyParser, (req, res, next) => {
     const { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
     const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
     
@@ -60,7 +60,7 @@ eventsRouter
 
 eventsRouter
   .route('/api/events/:event_id')
-  .get((req, res) => {
+  .get((req, res, next) => {
     // move implementation logic into here
   })
   .delete((req, res) => {
