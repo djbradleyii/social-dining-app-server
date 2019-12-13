@@ -61,10 +61,22 @@ eventsRouter
 eventsRouter
   .route('/api/events/:event_id')
   .get((req, res, next) => {
-    // move implementation logic into here
+    const knexInstance = req.app.get('db');
+    const { event_id } = req.params;
+  
+    eventsService.getEventsById(knexInstance, event_id)
+    .then(event => { 
+      if(!event){
+        return res.status(404).json({
+          error: { message: `Event doesn't exist` }
+        })
+      }
+      res.json(event)
+    })
+    .catch(next)
   })
   .patch((req, res, next) => {
-      
+
   })
   .delete((req, res) => {
     // move implementation logic into here
