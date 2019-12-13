@@ -76,7 +76,24 @@ eventsRouter
     .catch(next)
   })
   .patch((req, res, next) => {
-
+    const { event_id } = parseInt(req.params); //parseInt() for integers
+    const {title, event_purpose, time, description} = req.body;
+    const requiredFields = { title, event_purpose, time, description };
+  
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (value == null) {
+        return res.status(400).json({
+          error: { message: `Missing '${key}' in request body` }
+        })
+      }
+    } 
+  
+    const updates = {title, event_purpose, time, description};
+    EventService.updateEventById(req.app.get('db'), event_id, updates)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch(next);
   })
   .delete((req, res) => {
     // move implementation logic into here
