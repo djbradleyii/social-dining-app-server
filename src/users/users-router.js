@@ -36,7 +36,7 @@ usersRouter
         })
       }
     } 
-    
+
     // password length
     if (password.length < 8 || password.length > 36) {
       return res
@@ -73,9 +73,21 @@ usersRouter
   })
 
 usersRouter
-  .route('/api/users/:id')
+  .route('/api/users/:user_id')
   .get((req, res, next) => {
-    // move implementation logic into here
+    const knexInstance = req.app.get('db');
+    const { user_id } = req.params;
+
+    UsersService.getUserById(knexInstance, user_id)
+    .then(user => { 
+        if(!user){
+        return res.status(404).json({
+            error: { message: `User doesn't exist` }
+        })
+        }
+        res.json(user)
+    })
+    .catch(next)
   })
   .patch(bodyParser, (req, res, next) => {
     // move implementation logic into here
