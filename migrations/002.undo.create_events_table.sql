@@ -1,2 +1,2 @@
-DROP TYPE IF EXISTS event_purpose;
+DROP TYPE IF EXISTS event_purpose CASCADE;
 DROP TABLE IF EXISTS events;
