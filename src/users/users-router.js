@@ -90,7 +90,38 @@ usersRouter
     .catch(next)
   })
   .patch(bodyParser, (req, res, next) => {
-    // move implementation logic into here
+    const { user_id } = req.params; //parseInt() for integers
+    const {fname, lname, dob, email, password, marital_status, occupation, bio, gender} = req.body;
+    const requiredFields = { fname, lname, dob, email, password, marital_status, gender };
+  
+    for (const [key, value] of Object.entries(requiredFields)) {
+      if (value == null) {
+        return res.status(400).json({
+          error: { message: `Missing '${key}' in request body` }
+        })
+      }
+    } 
+  
+    // password length
+    if (password.length < 8 || password.length > 36) {
+      return res
+        .status(400)
+        .send('Password must be between 8 and 36 characters');
+    }
+  
+    // password contains digit, using a regex here
+    if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
+      return res
+        .status(400)
+        .send('Password must be contain at least one digit');
+    } 
+    
+    const updates = {fname, lname, dob, email, password, marital_status, occupation, bio, gender};
+    UserService.updateUserById(req.app.get('db'), user_id, updates)
+    .then(() => {
+      res.status(204).end();
+    })
+    .catch(next);
   })
   .delete((req, res, next) => {
     // move implementation logic into here
