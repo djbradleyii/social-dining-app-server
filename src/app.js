@@ -55,14 +55,24 @@ app.use(function validateBearerToken(req, res, next){
 }); */
 
 app.get('/api/users', (req, res) => {
-  res.json(users);
+  UsersService.getAllUsers(req.app.get('db'))
+  .then(users => res.json(users))
 })
 
 app.post('/api/users', (req, res) => {
 
-  const { fname, lname, email, password, dob, status, occupation, gender } = req.body;
+  const { fname, lname, dob, email, password, marital_status, occupation, bio, gender } = req.body;
   
   
+  for (const [key, value] of Object.entries(newUser)) {
+    if (value == null) {
+      return res.status(400).json({
+        error: { message: `Missing '${key}' in request body` }
+      })
+    }
+  }
+
+
   // password length
   if (password.length < 8 || password.length > 36) {
     return res
@@ -80,12 +90,12 @@ app.post('/api/users', (req, res) => {
   res.status(204).end();
 })
 
-app.delete('/api/users/:userId', (req, res) => {
-  const { userId } = req.params; //parseInt() for integers
+app.delete('/api/users/:user_id', (req, res) => {
+  const { user_id } = req.params; //parseInt() for integers
 })
 
-app.patch('/api/users/:userId', (req, res) => {
-  const { userId } = req.params; //parseInt() for integers
+app.patch('/api/users/:user_id', (req, res) => {
+  const { user_id } = req.params; //parseInt() for integers
 })
 
 /* EVENTS ENDPOINTS */
