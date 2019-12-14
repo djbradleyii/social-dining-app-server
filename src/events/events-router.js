@@ -21,7 +21,7 @@ const serializeEvent = event => ({
 
 
 eventsRouter
-  .route('/api/events')
+  .route('/events')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     EventsService.getAllEvents(knexInstance)
@@ -64,7 +64,7 @@ eventsRouter
   })
 
 eventsRouter
-  .route('/api/events/:event_id')
+  .route('/:event_id')
   .all((req, res, next) => {
     EventsService.getEventById(
       req.app.get('db'),
@@ -85,21 +85,21 @@ eventsRouter
     res.json(serializeEvent(res.event));
   })
   .patch(bodyParser, (req, res, next) => {
-    const { event_id } = req.params; //parseInt() for integers
-    const {organizer, title, event_purpose, restaurant, address, date, time, description, singles_only} = req.body;
-    const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
+    const { event_id } = req.params; //
+    const {title, description} = req.body;
+    const eventToUpdate = { title, description };
   
-    for (const [key, value] of Object.entries(requiredFields)) {
-      if (value == null) {
-        return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
-        })
-      }
-    } 
-  
-    const updates = {organizer, title, event_purpose, restaurant, address, date, time, description, singles_only};
-    EventsService.updateEventById(req.app.get('db'), event_id, updates)
-    .then(() => {
+    const numberOfValues = Object.values(eventToUpdate).filter(Boolean).length
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: {
+          message: `Request body must contain either 'title' or 'description'`
+        }
+      })
+
+
+    EventsService.updateEventById(req.app.get('db'), event_id, eventToUpdate)
+    .then((rowsAffected) => {
       res.status(204).end();
     })
     .catch(next);
