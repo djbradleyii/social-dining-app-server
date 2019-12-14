@@ -65,6 +65,22 @@ eventsRouter
 
 eventsRouter
   .route('/api/events/:event_id')
+  .all((req, res, next) => {
+    EventsService.getEventById(
+      req.app.get('db'),
+      parseInt(req.params.event_id)
+    )
+      .then(event => {
+        if (!event) {
+          return res.status(404).json({
+            error: { message: `Event doesn't exist` }
+          })
+        }
+        res.event = event; // save the event for the next middleware
+        next();
+      })
+      .catch(next)
+})
   .get((req, res, next) => {
     res.json(serializeEvent(res.event));
   })
