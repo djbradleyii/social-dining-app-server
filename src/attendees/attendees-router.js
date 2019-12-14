@@ -5,7 +5,7 @@ const bodyParser = express.json();
 const logger = require('../logger');
 
 attendeesRouter
-  .route('/api/attendees')
+  .route('/attendees')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     AttendeesService.getAllAttendees(knexInstance)
@@ -41,7 +41,7 @@ attendeesRouter
   })
 
 attendeesRouter
-  .route('/api/attendees/:attendee_id')
+  .route('/:attendee_id')
   .all((req, res, next) => {
     AttendeesService.getAttendeeById(
       req.app.get('db'),
