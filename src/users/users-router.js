@@ -20,7 +20,7 @@ const serializeUser = user => ({
 })
 
 usersRouter
-  .route('/api/users')
+  .route('/users')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     UsersService.getAllUsers(knexInstance)
@@ -77,7 +77,7 @@ usersRouter
   })
 
 usersRouter
-  .route('/api/users/:user_id')
+  .route('/:user_id')
   .all((req, res, next) => {
     UsersService.getUserById(
       req.app.get('db'),
@@ -124,6 +124,13 @@ usersRouter
         .send('Password must be contain at least one digit');
     } 
     
+    /*     const numberOfValues = Object.values(requiredFields).filter(Boolean).length
+    if (numberOfValues === 0)
+      return res.status(400).json({
+        error: {
+          message: `Request body must contain either 'fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'occupation', 'bio', 'gender'`
+        }
+      }) */
     const updates = {fname, lname, dob, email, password, marital_status, occupation, bio, gender};
     UsersService.updateUserById(req.app.get('db'), user_id, updates)
     .then((numUsersAffected) => {
