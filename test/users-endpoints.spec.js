@@ -45,32 +45,6 @@ describe.only('Users Endpoints', function() {
           .expect(200, testUsers)
       })
     })
-
-/*     context(`Given an XSS attack user`, () => {
-      const testUsers = makeUsersArray();
-      const { maliciousUser, expectedUser } = makeMaliciousUser()
-
-      beforeEach('insert malicious user', () => {
-        return db
-          .into('users')
-          .insert(testUsers)
-          .then(() => {
-            return db
-              .into('users')
-              .insert([ maliciousUser ])
-          })
-      })
-
-      it('removes XSS attack content', () => {
-        return supertest(app)
-          .get(`/api/users`)
-          .expect(200)
-          .expect(res => {
-            expect(res.body[0].title).to.eql(expectedUser.title)
-            expect(res.body[0].content).to.eql(expectedUser.content)
-          })
-      })
-    }) */
   })
 
   describe(`GET /api/users/:user_id`, () => {
@@ -104,32 +78,6 @@ describe.only('Users Endpoints', function() {
           })
       })
     })
-
-/*     context(`Given an XSS attack user`, () => {
-      const testUsers = makeUsersArray();
-      const { maliciousUser, expectedUser } = makeMaliciousUser()
-
-      beforeEach('insert malicious user', () => {
-        return db
-          .into('users')
-          .insert(testUsers)
-          .then(() => {
-            return db
-              .into('users')
-              .insert([ maliciousUser ])
-          })
-      })
-
-      it('removes XSS attack content', () => {
-        return supertest(app)
-          .get(`/api/users/${maliciousUser.id}`)
-          .expect(200)
-          .expect(res => {
-            expect(res.body.title).to.eql(expectedUser.title)
-            expect(res.body.content).to.eql(expectedUser.content)
-          })
-      })
-    }) */
   })
 
   describe(`POST /api/users`, () => {
@@ -156,21 +104,6 @@ describe.only('Users Endpoints', function() {
         .post('/api/users')
         .send(newUser)
         .expect(204)
-        /* .expect(res => {
-          expect(res.body.title).to.eql(newUser.title)
-          expect(res.body.style).to.eql(newUser.style)
-          expect(res.body.content).to.eql(newUser.content)
-          expect(res.body).to.have.property('id')
-          expect(res.headers.location).to.eql(`/api/users/${res.body.id}`)
-          const expected = new Intl.DateTimeFormat('en-US').format(new Date())
-          const actual = new Intl.DateTimeFormat('en-US').format(new Date(res.body.date_published))
-          expect(actual).to.eql(expected)
-        })
-        .then(res =>
-          supertest(app)
-            .get(`/api/users/${res.body.id}`)
-            .expect(res.body)
-        ) */
     })
 
     const requiredFields = ['fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender']
@@ -199,18 +132,6 @@ describe.only('Users Endpoints', function() {
           })
       })
     })
-
-/*     it('removes XSS attack content from response', () => {
-      const { maliciousUser, expectedUser } = makeMaliciousUser()
-      return supertest(app)
-        .post(`/api/users`)
-        .send(maliciousUser)
-        .expect(201)
-        .expect(res => {
-          expect(res.body.title).to.eql(expectedUser.title)
-          expect(res.body.content).to.eql(expectedUser.content)
-        })
-    }) */
   })
 
   describe(`DELETE /api/users/:user_id`, () => {
