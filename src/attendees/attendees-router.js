@@ -1,38 +1,22 @@
 const express = require('express');
-const EventsService = require('./attendees-service');
-const eventsRouter = express.Router();
+const AttendeesService = require('./attendees-service');
+const attendeesRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
-const xss = require('xss');
 
-const serializeEvent = event => ({
-  id: parseInt(event.id),
-  organizer: parseInt(event.organizer),
-  title: xss(event.title),
-  event_purpose: xss(event.event_purpose),
-  restaurant: xss(event.restaurant),
-  address: xss(event.address),
-  date: new Date(event.date),
-  time: event.time,
-  description: xss(event.description),
-  singles_only: event.singles_only,
-  date_created: new Date(event.date_created)
-  })
-
-
-eventsRouter
-  .route('/api/events')
+attendeesRouter
+  .route('/api/attendees')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
-    EventsService.getAllEvents(knexInstance)
-    .then(events => { 
-      res.json(events.map(serializeEvent))
+    AttendeesService.getAllAttendees(knexInstance)
+    .then(attendees => { 
+      res.json(attendees)
     })
     .catch(next)
   })
   .post(bodyParser, (req, res, next) => {
-    const { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
-    const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
+    const { user_id, event_id } = req.body;
+    const requiredFields = { user_id, event_id };
     
     for (const [key, value] of Object.entries(requiredFields)) {
       if (value == null) {
@@ -42,78 +26,51 @@ eventsRouter
       }
     }  
   
-     const newEvent = {
-      organizer,
-      title,
-      event_purpose,
-      restaurant,
-      address,
-      date,
-      time,
-      description,
-      singles_only
+     const newAttendee = {
+      user_id, 
+      event_id
     }
   
   
-    EventsService.insertEvent(req.app.get('db'), newEvent)
-    .then(eventId => {
+    AttendeesService.insertAttendee(req.app.get('db'), newAttendee)
+    .then(attendeeId => {
       res
       .status(204).end();
     })
     .catch(next);
   })
 
-eventsRouter
-  .route('/api/events/:event_id')
+attendeesRouter
+  .route('/api/attendees/:attendee_id')
   .all((req, res, next) => {
-    EventsService.getEventById(
+    AttendeesService.getAttendeeById(
       req.app.get('db'),
-      parseInt(req.params.event_id)
+      parseInt(req.params.attendee_id)
     )
-      .then(event => {
-        if (!event) {
-          return res.status(404).json({
-            error: { message: `Event doesn't exist` }
-          })
-        }
-        res.event = event; // save the event for the next middleware
-        next();
-      })
-      .catch(next)
-})
-  .get((req, res, next) => {
-    res.json(serializeEvent(res.event));
-  })
-  .patch(bodyParser, (req, res, next) => {
-    const { event_id } = req.params; //parseInt() for integers
-    const {organizer, title, event_purpose, restaurant, address, date, time, description, singles_only} = req.body;
-    const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
-  
-    for (const [key, value] of Object.entries(requiredFields)) {
-      if (value == null) {
-        return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
+    .then(attendee => {
+      if (!attendee) {
+        return res.status(404).json({
+          error: { message: `Attendee doesn't exist` }
         })
       }
-    } 
-  
-    const updates = {organizer, title, event_purpose, restaurant, address, date, time, description, singles_only};
-    EventsService.updateEventById(req.app.get('db'), event_id, updates)
-    .then(() => {
-      res.status(204).end();
+      res.attendee = attendee; // save the attendee for the next middleware
+      next();
     })
-    .catch(next);
+    .catch(next)
+})
+  .get((req, res, next) => {
+    res.json(res.attendee);
   })
   .delete((req, res, next) => {
-    if(!req.params.event_id){
-      logger.error(`Event id is required.`);
+    if(!req.params.attendee_id){
+      logger.error(`Attendee id is required.`);
       return res.status(400).send('Invalid data')
     }
-    EventsService.deleteEvent(res.app.get('db'), req.params.event_id)
+    AttendeesService.deleteAttendee(res.app.get('db'), req.params.attendee_id)
       .then( (count) => {
         if(count === 0){
           return res.status(404).json({
-            error: { message: `Event does not exist`}
+            error: { message: `Attendee does not exist`}
           })
         }
         res
@@ -121,7 +78,7 @@ eventsRouter
         .end();
       })
       .catch(next)
-      logger.info(`Event with event_id ${req.params.event_id} deleted.`);  
+      logger.info(`Attendee with attendee_id ${req.params.attendee_id} deleted.`);  
   })
 
-module.exports = eventsRouter
+module.exports = attendeesRouter
