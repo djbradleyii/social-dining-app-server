@@ -5,7 +5,7 @@ const bodyParser = express.json();
 const logger = require('../logger');
 
 attendeesRouter
-  .route('/attendees')
+  .route('/')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     AttendeesService.getAllAttendees(knexInstance)
