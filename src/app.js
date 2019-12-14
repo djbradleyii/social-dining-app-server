@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const { NODE_ENV, CLIENT_ORIGIN } = require('./config');
 const usersRouter = require('./users/users-router');
 const eventsRouter = require('./events/events-router');
+const attendeesRouter = require('./attendees/attendees-router');
 
 const app = express();
 
