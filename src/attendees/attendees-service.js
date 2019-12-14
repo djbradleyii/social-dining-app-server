@@ -23,11 +23,6 @@ const AttendeesService = {
         return knex('attendees')
             .where({id})
             .delete()
-    },
-    updateAttendeeById(knex, id, attendeeUpdates){
-        return knex('attendees')
-            .where({ id })
-            .update(attendeeUpdates)
     }
 };
 
