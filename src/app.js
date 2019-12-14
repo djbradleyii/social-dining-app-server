@@ -38,6 +38,7 @@ app.use(function validateBearerToken(req, res, next){
 
 app.use(usersRouter);
 app.use(eventsRouter);
+app.use(attendeesRouter);
 
 app.use(function errorHandler(error, req, res, next) {
        let response;
