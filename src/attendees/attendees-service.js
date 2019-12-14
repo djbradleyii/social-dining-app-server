@@ -1,34 +1,34 @@
-const EventsService = {
-    getAllEvents(knex){
+const AttendeesService = {
+    getAllAttendees(knex){
         return knex.select('*')
-            .from('events')
+            .from('attendees')
     },
-    insertEvent(knex, newEvent){
+    insertAttendee(knex, newAttendee){
         return knex
-            .insert(newEvent)
-            .into('events')
+            .insert(newAttendee)
+            .into('attendees')
             .returning('*')
             .then(rows => {
                 return rows[0]
             })
     },
-    getEventById(knex, id){
+    getAttendeeById(knex, id){
         return knex
-            .from('events')
+            .from('attendees')
             .select('*')
             .where('id',id)
             .first()
     },
-    deleteEvent(knex, id){
-        return knex('events')
+    deleteAttendee(knex, id){
+        return knex('attendees')
             .where({id})
             .delete()
     },
-    updateEventById(knex, id, eventUpdates){
-        return knex('events')
+    updateAttendeeById(knex, id, attendeeUpdates){
+        return knex('attendees')
             .where({ id })
-            .update(eventUpdates)
+            .update(attendeeUpdates)
     }
 };
 
-module.exports = EventsService;
+module.exports = AttendeesService;
