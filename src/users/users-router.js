@@ -78,6 +78,22 @@ usersRouter
 
 usersRouter
   .route('/api/users/:user_id')
+  .all((req, res, next) => {
+    UsersService.getUserById(
+      req.app.get('db'),
+      parseInt(req.params.user_id)
+    )
+      .then(user => {
+        if (!user) {
+          return res.status(404).json({
+            error: { message: `User doesn't exist` }
+          })
+        }
+        res.user = user; // save the user for the next middleware
+        next();
+      })
+      .catch(next)
+})
   .get((req, res, next) => {
     res.json(serializeUser(res.user));
   })
