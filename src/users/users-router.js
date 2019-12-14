@@ -20,7 +20,7 @@ const serializeUser = user => ({
 })
 
 usersRouter
-  .route('/users')
+  .route('/')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     UsersService.getAllUsers(knexInstance)
@@ -31,7 +31,7 @@ usersRouter
   })
   .post(bodyParser, (req, res, next) => {
     const { fname, lname, dob, email, password, marital_status, occupation, bio, gender } = req.body;
-    const requiredFields = { fname, lname, dob, email, password, marital_status, gender };
+    const requiredFields = { fname, lname, dob, email, password, marital_status, bio, gender };
     
     for (const [key, value] of Object.entries(requiredFields)) {
       if (value == null) {
@@ -100,37 +100,40 @@ usersRouter
   .patch(bodyParser, (req, res, next) => {
     const { user_id } = req.params;
     const {fname, lname, dob, email, password, marital_status, occupation, bio, gender} = req.body;
-    const requiredFields = { fname, lname, dob, email, password, marital_status, gender };
+    const requiredFields = { lname, email, password, marital_status, bio, gender };
   
-    for (const [key, value] of Object.entries(requiredFields)) {
+/*     for (const [key, value] of Object.entries(requiredFields)) {
       if (value == null) {
         return res.status(400).json({
           error: { message: `Missing '${key}' in request body` }
         })
       }
-    } 
-  
+    }  */
+  if(password){
     // password length
     if (password.length < 8 || password.length > 36) {
       return res
         .status(400)
         .send('Password must be between 8 and 36 characters');
     }
-  
+
     // password contains digit, using a regex here
     if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
       return res
         .status(400)
         .send('Password must be contain at least one digit');
-    } 
+    }
+  }
+     
     
-    /*     const numberOfValues = Object.values(requiredFields).filter(Boolean).length
+    const numberOfValues = Object.values(requiredFields).filter(Boolean).length
     if (numberOfValues === 0)
       return res.status(400).json({
         error: {
-          message: `Request body must contain either 'fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'occupation', 'bio', 'gender'`
+          message: `Request body must contain either 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender'`
         }
-      }) */
+      })
+
     const updates = {fname, lname, dob, email, password, marital_status, occupation, bio, gender};
     UsersService.updateUserById(req.app.get('db'), user_id, updates)
     .then((numUsersAffected) => {
