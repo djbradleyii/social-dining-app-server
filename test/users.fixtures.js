@@ -1,7 +1,6 @@
 function makeUsersArray(){
     return [
         {
-            id: 1,
             fname : "Rick",
             lname : "Mcqueeney",
             dob : '1919-12-22T16:28:32.615Z',
@@ -14,7 +13,6 @@ function makeUsersArray(){
             date_created: '1919-12-22T16:28:32.615Z'
         },
         {
-            id: 2,
             fname : "Summer",
             lname : "Lane",
             dob : '1919-12-22T16:28:32.615Z',
@@ -27,7 +25,6 @@ function makeUsersArray(){
             date_created: '1919-12-22T16:28:32.615Z'
         },
         {
-            id: 3,
             fname : "Larry",
             lname : "Savage",
             dob : '1919-12-22T16:28:32.615Z',
