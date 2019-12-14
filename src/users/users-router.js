@@ -5,25 +5,27 @@ const bodyParser = express.json();
 const logger = require('../logger');
 const xss = require('xss');
 
+const serializeUser = user => ({
+  id: user.id,
+  fname: xss(user.fname),
+  lname: xss(user.lname),
+  dob: new Date(user.dob),
+  email: xss(user.email),
+  password: xss(user.password),
+  marital_status: xss(user.marital_status),
+  occupation: xss(user.occupation),
+  gender: xss(user.gender),
+  bio: xss(user.bio),
+  date_created: new Date(user.date_created)
+})
+
 usersRouter
   .route('/api/users')
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     UsersService.getAllUsers(knexInstance)
     .then(users => { 
-      res.json(users.map(user => ({
-        id: user.id,
-        fname: user.fname,
-        lname: user.lname,
-        dob: new Date(user.dob),
-        email: user.email,
-        password: user.password,
-        marital_status: user.marital_status,
-        occupation: user.occupation,
-        gender: user.gender,
-        bio: user.bio,
-        date_created: new Date(user.date_created)
-        })))
+      res.json(users.map(serializeUser))
     })
     .catch(next)
   })
@@ -77,19 +79,7 @@ usersRouter
 usersRouter
   .route('/api/users/:user_id')
   .get((req, res, next) => {
-    const knexInstance = req.app.get('db');
-    const { user_id } = req.params;
-
-    UsersService.getUserById(knexInstance, user_id)
-    .then(user => { 
-        if(!user){
-        return res.status(404).json({
-            error: { message: `User doesn't exist` }
-        })
-        }
-        res.json(user)
-    })
-    .catch(next)
+    res.json(serializeUser(res.user));
   })
   .patch(bodyParser, (req, res, next) => {
     const { user_id } = req.params;
@@ -119,25 +109,18 @@ usersRouter
     } 
     
     const updates = {fname, lname, dob, email, password, marital_status, occupation, bio, gender};
-    UserService.updateUserById(req.app.get('db'), user_id, updates)
-    .then(() => {
+    UsersService.updateUserById(req.app.get('db'), user_id, updates)
+    .then((numUsersAffected) => {
       res.status(204).end();
     })
     .catch(next);
   })
   .delete((req, res, next) => {
-    const { user_id } = parseInt(req.params);
-
-    if(!user_id){
-      logger.error(`User id is required.`);
-      return res.status(400).send('Invalid data')
-    }
-  
-    UsersService.deleteUser(res.app.get('db'), user_id)
+    UsersService.deleteUser(res.app.get('db'), req.params.user_id)
       .then( (count) => {
         if(count === 0){
           return res.status(404).json({
-            error: { message: `Bookmark does not exist`}
+            error: { message: `User does not exist`}
           })
         }
         res
@@ -145,7 +128,7 @@ usersRouter
         .end();
       })
       .catch(next)
-      logger.info(`User with user_id ${user_id} deleted.`); 
+      logger.info(`User with user_id ${req.params.user_id} deleted.`); 
   })
 
 module.exports = usersRouter;
