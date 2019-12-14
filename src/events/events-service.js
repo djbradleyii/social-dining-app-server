@@ -24,7 +24,7 @@ const EventsService = {
             .where({id})
             .delete()
     },
-    updateEventInfo(knex, id, eventUpdates){
+    updateEventById(knex, id, eventUpdates){
         return knex('events')
             .where({ id })
             .update(eventUpdates)
