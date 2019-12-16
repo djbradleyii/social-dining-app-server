@@ -3,9 +3,11 @@ const AttendeesService = require('./attendees-service');
 const attendeesRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
+const { requireAuth } = require('../middleware/jwt-auth');
 
 attendeesRouter
   .route('/')
+  .all(requireAuth)
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     AttendeesService.getAllAttendees(knexInstance)
@@ -42,6 +44,7 @@ attendeesRouter
 
 attendeesRouter
   .route('/:attendee_id')
+  .all(requireAuth)
   .all((req, res, next) => {
     AttendeesService.getAttendeeById(
       req.app.get('db'),
