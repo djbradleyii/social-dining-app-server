@@ -4,6 +4,8 @@ const usersRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
 const xss = require('xss');
+const { requireAuth } = require('../middleware/jwt-auth');
+const bcrypt = require('bcryptjs');
 
 const serializeUser = user => ({
   id: user.id,
@@ -41,43 +43,51 @@ usersRouter
       }
     } 
 
-    // password length
-    if (password.length < 8 || password.length > 36) {
-      return res
-        .status(400)
-        .send('Password must be between 8 and 36 characters');
+    const passwordError = UsersService.validatePassword(password);
+  
+    if(passwordError){
+      return res.status(400).json({ error: passwordError})
     }
-  
-    // password contains digit, using a regex here
-    if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
-      return res
-        .status(400)
-        .send('Password must be contain at least one digit');
-    } 
-  
-     const newUser = {
-      fname,
-      lname,
-      dob: new Date(dob),
-      email,
-      password,
-      marital_status,
-      occupation,
-      bio,
-      gender
-    }
-  
-  
-    UsersService.insertUser(req.app.get('db'), newUser)
-    .then(userId => {
-      res
-      .status(204).end();
-    })
-    .catch(next);
-  })
+
+    UsersService.hasUserWithEmail(
+      req.app.get('db'),
+      email
+    )
+      .then(hasUserWithEmail => {
+        if (hasUserWithEmail)
+          return res.status(400).json({ error: `Email already taken` })
+
+        return UsersService.hashPassword(password)
+          .then(hashedPassword => {
+            const newUser = {
+              fname,
+              lname,
+              dob: new Date(dob),
+              email,
+              password: hashedPassword,
+              marital_status,
+              occupation,
+              bio,
+              gender
+            }
+
+            return UsersService.insertUser(
+              req.app.get('db'),
+              newUser
+            )
+              .then(user => {
+                res
+                  .status(204)
+                  .end()
+              })
+          })
+      })
+      .catch(next)
+})
 
 usersRouter
   .route('/:user_id')
+  .all(requireAuth)
   .all((req, res, next) => {
     UsersService.getUserById(
       req.app.get('db'),
