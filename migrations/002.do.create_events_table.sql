@@ -14,7 +14,7 @@ CREATE TABLE events (
     event_purpose event_objective NOT NULL,
     restaurant VARCHAR(50) NOT NULL,
     address TEXT NOT NULL,
-    date DATE NOT NULL,
+    date TEXT NOT NULL,
     time TIME NOT NULL,
     description VARCHAR(255),
     singles_only BOOLEAN NOT NULL,
