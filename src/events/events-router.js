@@ -1,9 +1,11 @@
 const express = require('express');
 const EventsService = require('./events-service');
+const AttendeesService = require('../attendees/attendees-service');
 const eventsRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
 const xss = require('xss');
+const { requireAuth } = require('../middleware/jwt-auth');
 
 const serializeEvent = event => ({
   id: parseInt(event.id),
@@ -22,6 +24,7 @@ const serializeEvent = event => ({
 
 eventsRouter
   .route('/')
+  .all(requireAuth)
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
     EventsService.getAllEvents(knexInstance)
@@ -57,6 +60,7 @@ eventsRouter
   
     EventsService.insertEvent(req.app.get('db'), newEvent)
     .then(eventId => {
+      console.log('eventId', eventId);
       res
       .status(204).end();
     })
@@ -65,6 +69,7 @@ eventsRouter
 
 eventsRouter
   .route('/:event_id')
+  .all(requireAuth)
   .all((req, res, next) => {
     EventsService.getEventById(
       req.app.get('db'),
