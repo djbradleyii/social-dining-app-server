@@ -3,5 +3,6 @@ module.exports = {
     NODE_ENV: process.env.NODE_ENV || 'development',
     CLIENT_ORIGIN: process.env.CLIENT_ORIGIN,
     DB_URL: process.env.DB_URL || 'postgresql://dbradley:password@localhost/social-dining-app',
-    TEST_DB_URL:'postgresql://dbradley:password@localhost/social-dining-app-test'
+    TEST_DB_URL:'postgresql://dbradley:password@localhost/social-dining-app-test',
+    JWT_SECRET: process.env.JWT_SECRET || 'superdupersecretword',
   }
