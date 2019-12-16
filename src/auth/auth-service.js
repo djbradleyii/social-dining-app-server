@@ -8,6 +8,9 @@ const AuthService = {
       .where({ email })
       .first()
   },
+  comparePasswords(password, hash) {
+    return bcrypt.compare(password, hash)
+  },
   
 }
 
