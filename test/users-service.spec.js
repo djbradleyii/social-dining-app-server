@@ -1,11 +1,12 @@
 const knex = require('knex');
 const UsersService = require('../src/users/users-service');
-const { makeUsersArray } = require('./users.fixtures');
+const { makeUsersArray, makeUsersArrayServices } = require('./users.fixtures');
 
-describe.skip(`Users service object`, function() {
+describe.only(`Users service object`, function() {
     let db;
 
     const testUsers = makeUsersArray();
+    const usersDelete = makeUsersArrayServices();
 
     before(() => {
         db = knex({
@@ -14,23 +15,14 @@ describe.skip(`Users service object`, function() {
         });
     });
     
-    before(() => {
-        db('events').truncate();
-        db('users').truncate();
-    });
+    before(() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
 
-    afterEach(() => {
-        db('events').truncate();
-        db('users').truncate();
-    });
+    afterEach(() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
 
     after(() => db.destroy());
 
     context(`Given 'users' has data`, () => {
-        beforeEach(() => {
-            db('events').truncate();
-            db('users').truncate();
-        });
+        beforeEach(() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
 
         beforeEach(() => {
             return db
@@ -40,33 +32,32 @@ describe.skip(`Users service object`, function() {
 
         it(`getAllUsers() resolves all users from 'users' table`, () => {
             return UsersService.getAllUsers(db)
-                .then(actual => {
-                    expect(actual).to.eql(testUsers.map(user => ({
-                               ...user,
-                               dob: new Date(user.dob),
-                               date_created: new Date(user.date_created)
-                    })))
-                })
+                .then(res => {
+                    expect(res[0].fname).to.eql(testUsers[0].fname)
+                    expect(res[0].lname).to.eql(testUsers[0].lname)
+                    expect(res[0].email).to.eql(testUsers[0].email)
+                    expect(res[0].password).to.eql(testUsers[0].password)
+                    expect(res[0].marital_status).to.eql(testUsers[0].marital_status)
+                    expect(res[0].occupation).to.eql(testUsers[0].occupation)
+                    expect(res[0].gender).to.eql(testUsers[0].gender)
+                    expect(res[0].bio).to.eql(testUsers[0].bio)
+                  })
         })
 
         it(`getUserByID() resolves a user by id from 'user' table`, () => {
             const thirdId = 3;
             const thirdTestUser = testUsers[thirdId - 1];
             return UsersService.getUserById(db, thirdId)
-                .then(actual => {
-                    expect(actual).to.eql({
-                        id: thirdId,
-                        fname: thirdTestUser.fname,
-                        lname: thirdTestUser.lname,
-                        dob: new Date(thirdTestUser.dob),
-                        email: thirdTestUser.email,
-                        password: thirdTestUser.password,
-                        marital_status: thirdTestUser.marital_status,
-                        occupation: thirdTestUser.occupation,
-                        gender: thirdTestUser.gender,
-                        bio: thirdTestUser.bio,
-                        date_created: new Date(thirdTestUser.date_created)
-                    })
+                .then(res => {
+
+                    expect(res.fname).to.eql(thirdTestUser.fname)
+                    expect(res.lname).to.eql(thirdTestUser.lname)
+                    expect(res.email).to.eql(thirdTestUser.email)
+                    expect(res.password).to.eql(thirdTestUser.password)
+                    expect(res.marital_status).to.eql(thirdTestUser.marital_status)
+                    expect(res.occupation).to.eql(thirdTestUser.occupation)
+                    expect(res.gender).to.eql(thirdTestUser.gender)
+                    expect(res.bio).to.eql(thirdTestUser.bio)
                 })
         })
 
@@ -75,8 +66,24 @@ describe.skip(`Users service object`, function() {
             return UsersService.deleteUser(db, userId)
                 .then(() => UsersService.getAllUsers(db))
                 .then(allUsers => {
-                    const expected = testUsers.filter(user => user.id !== userId);
-                    expect(allUsers).to.eql(expected)
+                    const expected = usersDelete.filter(user => user.id !== userId);
+                    expect(allUsers).to.have.lengthOf(2);
+                    expect(allUsers[0].fname).to.eql(expected[0].fname)
+                    expect(allUsers[0].lname).to.eql(expected[0].lname)
+                    expect(allUsers[0].email).to.eql(expected[0].email)
+                    expect(allUsers[0].password).to.eql(expected[0].password)
+                    expect(allUsers[0].marital_status).to.eql(expected[0].marital_status)
+                    expect(allUsers[0].occupation).to.eql(expected[0].occupation)
+                    expect(allUsers[0].gender).to.eql(expected[0].gender)
+                    expect(allUsers[0].bio).to.eql(expected[0].bio)
+                    expect(allUsers[1].fname).to.eql(expected[1].fname)
+                    expect(allUsers[1].lname).to.eql(expected[1].lname)
+                    expect(allUsers[1].email).to.eql(expected[1].email)
+                    expect(allUsers[1].password).to.eql(expected[1].password)
+                    expect(allUsers[1].marital_status).to.eql(expected[1].marital_status)
+                    expect(allUsers[1].occupation).to.eql(expected[1].occupation)
+                    expect(allUsers[1].gender).to.eql(expected[1].gender)
+                    expect(allUsers[1].bio).to.eql(expected[1].bio)
                 })
         })
 
@@ -87,21 +94,21 @@ describe.skip(`Users service object`, function() {
             };
             return UsersService.updateUserById(db, idOfUserToUpdate, newUserInfo)
             .then(() => UsersService.getUserById(db, idOfUserToUpdate))
-            .then(user => {
-                expect(user).to.eql({
-                    id: idOfUserToUpdate,
-                    ...user,
-                    bio: newUserInfo.bio
-                })
+            .then(res => {
+                expect(res.fname).to.eql(testUsers[idOfUserToUpdate - 1].fname)
+                expect(res.lname).to.eql(testUsers[idOfUserToUpdate - 1].lname)
+                expect(res.email).to.eql(testUsers[idOfUserToUpdate - 1].email)
+                expect(res.password).to.eql(testUsers[idOfUserToUpdate - 1].password)
+                expect(res.marital_status).to.eql(testUsers[idOfUserToUpdate - 1].marital_status)
+                expect(res.occupation).to.eql(testUsers[idOfUserToUpdate - 1].occupation)
+                expect(res.gender).to.eql(testUsers[idOfUserToUpdate - 1].gender)
+                expect(res.bio).to.eql(newUserInfo.bio)
             })
         })
     })
 
     context(`Given 'users' table has no data`, () => {
-        beforeEach(() => {
-            //db('events').truncate();
-            db('users').truncate();
-        });
+        beforeEach(() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
         
 
         it(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
@@ -119,20 +126,15 @@ describe.skip(`Users service object`, function() {
             }
 
             return UsersService.insertUser(db, newUser)
-                .then(actual => {
-                    expect(actual).to.eql({
-                        id: 1,
-                        fname: newUser.fname,
-                        lname: newUser.lname,
-                        dob: "5/22/1980, 12:00:00 AM",
-                        email: newUser.email,
-                        password: newUser.password,
-                        marital_status: newUser.marital_status,
-                        occupation: newUser.occupation,
-                        gender: newUser.gender,
-                        bio: newUser.bio,
-                        date_created: new Date(newUser.date_created).toLocaleString()
-                    })
+                .then(res => {
+                    expect(res.fname).to.eql(newUser.fname)
+                    expect(res.lname).to.eql(newUser.lname)
+                    expect(res.email).to.eql(newUser.email)
+                    expect(res.password).to.eql(newUser.password)
+                    expect(res.marital_status).to.eql(newUser.marital_status)
+                    expect(res.occupation).to.eql(newUser.occupation)
+                    expect(res.gender).to.eql(newUser.gender)
+                    expect(res.bio).to.eql(newUser.bio)
                 })
         })
 
