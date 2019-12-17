@@ -43,6 +43,7 @@ usersRouter
       }
     } 
 
+    console.log('delete console log from users-router checking req.user.id for event and  attendees routers', req.user.id);
     const passwordError = UsersService.validatePassword(password);
   
     if(passwordError){
