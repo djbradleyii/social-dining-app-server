@@ -62,7 +62,7 @@ describe.only('Users Endpoints', function() {
     })
 
     context(`Given an XSS attack user`, () => {
-      const testUser = makeUsersArray()[1];
+      const testUser = makeUsersArray();
       const maliciousUser = {
         fname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
         lname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
