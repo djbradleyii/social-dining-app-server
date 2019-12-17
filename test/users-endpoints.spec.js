@@ -1,22 +1,20 @@
 const knex = require('knex')
 const app = require('../src/app')
 const { makeUsersArray } = require('./users.fixtures');
-const bcrypt = require('bcryptjs');
+//const bcrypt = require('bcryptjs');
 const AuthService = require('../src/auth/auth-service');
-const helpers = require('./test-helpers');
+//const helpers = require('./test-helpers');
 
 describe.only('Users Endpoints', function() {
   let db
   let testUsers = makeUsersArray();
 
   before('make knex instance', () => {
-
     db = knex({
       client: 'pg',
       connection: process.env.TEST_DB_URL,
     })
     app.set('db', db)
-
   })
 
   function makeAuthHeader(user) { 
@@ -24,70 +22,93 @@ describe.only('Users Endpoints', function() {
    return `Bearer ${token}`
   }
 
-  before('clean the table', () => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'))
-
-  beforeEach('insert users', () => {
-    return db
-      .into('users')
-      .insert(testUsers)
-  })
-
-  afterEach('cleanup',() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'))
-
-  after('disconnect from db', () => db.destroy())
-    
+  after('disconnect from db', () => db.destroy());
+  before('clean the table', () => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
+  afterEach('cleanup',() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
   
-    describe(`Protected endpoints`, () => {
-      beforeEach('insert articles', () => {
-        beforeEach('insert users', () => {
-          return db
-            .into('users')
-            .insert(testUsers)
-        })
-      })
-      describe(`GET /api/users/:user_id`, () => {
-        it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
-          const userNoCreds = { user_name: '', password: '' };
-          return supertest(app)
-           .get(`/api/users/123`)
-           .set('Authorization', makeAuthHeader(userNoCreds))
-           .expect(401, { error: `Unauthorized request` })
-        })
-
-        it(`responds 401 'Unauthorized request' when invalid user`, () => {
-             const userInvalidCreds = { user_name: 'user-not', password: 'existy' }
-             return supertest(app)
-               .get(`/api/users/1`)
-               .set('Authorization', makeAuthHeader(userInvalidCreds))
-               .expect(401, { error: `Unauthorized request` })
-           })
-           
-        it(`responds 401 'Unauthorized request' when invalid password`, () => {
-          const userInvalidPass = { user_name: testUsers[0].user_name, password: 'wrong' }
-          return supertest(app)
-            .get(`/api/articles/1`)
-            .set('Authorization', makeAuthHeader(userInvalidPass))
-            .expect(401, { error: `Unauthorized request` })
-        })
-      })
-    })
-
   describe(`GET /api/users`, () => {
     context(`Given no users`, () => {
-      it(`responds with 200 and an empty list`, () => {
+      it(`responds with 401 and Missing bearer token`, () => {
         return supertest(app)
           .get('/api/users')
-          .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(200, [])
+          //.set('Authorization', makeAuthHeader(testUsers[0]))
+          .expect(401, { error: `Missing bearer token` })
       })
     })
 
     context('Given there are users in the database', () => {
+      beforeEach('insert users', () => {
+        return db
+          .into('users')
+          .insert(testUsers)
+      })
+
       it('responds with 200 and all of the users', () => {
         return supertest(app)
           .get('/api/users')
           .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(200, testUsers)
+          .expect(200)
+          .expect(res => {
+            expect(res.body[0].fname).to.eql(testUsers[0].fname)
+            expect(res.body[0].lname).to.eql(testUsers[0].lname)
+            expect(res.body[0].email).to.eql(testUsers[0].email)
+            expect(res.body[0].password).to.eql(testUsers[0].password)
+            expect(res.body[0].marital_status).to.eql(testUsers[0].marital_status)
+            expect(res.body[0].occupation).to.eql(testUsers[0].occupation)
+            expect(res.body[0].gender).to.eql(testUsers[0].gender)
+            expect(res.body[0].bio).to.eql(testUsers[0].bio)
+          })
+      })
+    })
+
+    context(`Given an XSS attack user`, () => {
+      const testUser = makeUsersArray()[1];
+      const maliciousUser = {
+        fname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
+        lname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
+        dob : '10/10/1980',
+        email : `someemail@gmail.com`,
+        password : 'Password1!',
+        marital_status : "Married",
+        occupation : 'malicious occupation <script>alert("xss");</script>',
+        gender : "Male",
+        bio : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`, 
+        date_created: '10/10/1980'
+    }
+    const expectedUser = {
+      fname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
+      lname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
+      dob : '10/10/1980',
+      email : `someemail@gmail.com`,
+      password : 'Password1!',
+      marital_status : "Married",
+      occupation : 'malicious occupation &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+      gender : "Male",
+      bio : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`, 
+      date_created: '10/10/1980'
+  }
+
+      beforeEach('insert malicious user', () => {
+        return db
+        .into('users')
+        .insert(maliciousUser)
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/users`)
+          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .expect(200)
+          .expect(res => {
+            expect(res.body[0].fname).to.eql(expectedUser.fname)
+            expect(res.body[0].lname).to.eql(expectedUser.lname)
+            expect(res.body[0].email).to.eql(expectedUser.email)
+            expect(res.body[0].password).to.eql(expectedUser.password)
+            expect(res.body[0].marital_status).to.eql(expectedUser.marital_status)
+            expect(res.body[0].occupation).to.eql(expectedUser.occupation)
+            expect(res.body[0].gender).to.eql(expectedUser.gender)
+            expect(res.body[0].bio).to.eql(expectedUser.bio)
+          })
       })
     })
   })
@@ -104,20 +125,86 @@ describe.only('Users Endpoints', function() {
     })
 
     context('Given there are users in the database', () => {
+      beforeEach('insert users', () => {
+        return db
+        .into('users')
+        .insert(testUsers)
+      })
+
       it('responds with 200 and the specified user', () => {
-        const userId = 2
-        const expectedUser = testUsers[userId - 1]
+        const userId = 2;
+        const expectedUser = testUsers[userId - 1];
         return supertest(app)
           .get(`/api/users/${userId}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(200, {
-            ...expectedUser,
-            dob: '10/10/1980',
-            date_created: '10/10/1980'
+          .set('Authorization', makeAuthHeader(expectedUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body.fname).to.eql(expectedUser.fname)
+            expect(res.body.lname).to.eql(expectedUser.lname)
+            expect(res.body.email).to.eql(expectedUser.email)
+            expect(res.body.password).to.eql(expectedUser.password)
+            expect(res.body.marital_status).to.eql(expectedUser.marital_status)
+            expect(res.body.occupation).to.eql(expectedUser.occupation)
+            expect(res.body.gender).to.eql(expectedUser.gender)
+            expect(res.body.bio).to.eql(expectedUser.bio)
+          })
+      })
+    })
+
+    context(`Given an XSS attack user`, () => {
+      const testUser = makeUsersArray();
+      const maliciousUser = {
+        fname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
+        lname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
+        dob : '10/10/1980',
+        email : `someemail@gmail.com`,
+        password : 'Password1!',
+        marital_status : "Married",
+        occupation : 'malicious occupation <script>alert("xss");</script>',
+        gender : "Male",
+        bio : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`, 
+        date_created: '10/10/1980'
+    }
+      const expectedUser = {
+        fname : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`,
+        lname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
+        dob : '10/10/1980',
+        email : `someemail@gmail.com`,
+        password : 'Password1!',
+        marital_status : "Married",
+        occupation : 'malicious occupation &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
+        gender : "Male",
+        bio : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`, 
+        date_created: '10/10/1980'
+    }
+
+      beforeEach('insert users', () => {
+        return db
+        .into('users')
+        .insert(maliciousUser)
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/users/1`)
+          .set('Authorization', makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body[0].fname).to.eql(expectedUser.fname)
+            expect(res.body[0].lname).to.eql(expectedUser.lname)
+            expect(res.body[0].email).to.eql(expectedUser.email)
+            expect(res.body[0].password).to.eql(expectedUser.password)
+            expect(res.body[0].marital_status).to.eql(expectedUser.marital_status)
+            expect(res.body[0].occupation).to.eql(expectedUser.occupation)
+            expect(res.body[0].gender).to.eql(expectedUser.gender)
+            expect(res.body[0].bio).to.eql(expectedUser.bio)
           })
       })
     })
   })
+
+
+  /* Tests for Other users HTTP METHODS below */
 
   describe(`POST /api/users`, () => {
     const testUsers = makeUsersArray();
@@ -132,7 +219,7 @@ describe.only('Users Endpoints', function() {
         fname : "New",
         lname : "User",
         email : "nuser@gmail.com",
-        password : "iamnewuser1",
+        password : "Iamnewuser1!",
         dob : '10/10/1980',
         gender : "Male",
         occupation : "Marketing",
@@ -143,7 +230,7 @@ describe.only('Users Endpoints', function() {
         .post('/api/users')
         .set('Authorization', makeAuthHeader(testUsers[0]))
         .send(newUser)
-        .expect(204)
+        .expect(201)
     })
 
     const requiredFields = ['fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender']
@@ -221,7 +308,7 @@ describe.only('Users Endpoints', function() {
           fname : "Update",
           lname : "User",
           email : "uuser@gmail.com",
-          password : "iupdatedme1",
+          password : "Iupdatedme1!",
           dob : "03/02/1978",
           gender : "Male",
           occupation : "Marketing",
@@ -279,6 +366,59 @@ describe.only('Users Endpoints', function() {
               .get(`/api/users/${idToUpdate}`)
               .expect(expectedUser)
           )
+      })
+    })
+  })
+
+
+      describe(`Protected endpoints`, () => {
+        beforeEach('insert users', () => {
+          return db
+            .into('users')
+            .insert(testUsers)
+        })
+
+      const protectedEndpoints = [
+          {
+            name: 'GET /api/users/',
+            path: '/api/users/'
+          },
+          {
+            name: 'GET /api/users/:user_id',
+            path: '/api/users/1'
+          },
+        ]
+      protectedEndpoints.forEach(endpoint => {
+      describe(endpoint.name, () => {
+        it(`responds 401 'Missing jwt token' when no basic token`, () => {
+          return supertest(app)
+            .get(endpoint.path)
+            .expect(401, { error: `Missing bearer token` })
+        })
+
+        it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
+          const userNoCreds = { email: ' ', password: ' ' };
+          return supertest(app)
+          .get(endpoint.path)
+          .set('Authorization', makeAuthHeader(userNoCreds))
+          .expect(401, { error: `Unauthorized request` })
+        })
+
+        it(`responds 401 'Unauthorized request' when invalid email`, () => {
+            const userInvalidCreds = { email: 'someemail@gmail.com', password: 'existy' }
+            return supertest(app)
+              .get(endpoint.path)
+              .set('Authorization', makeAuthHeader(userInvalidCreds))
+              .expect(401, { error: `Unauthorized request` })
+          })
+
+        it(`responds 401 'Unauthorized request' when invalid password`, () => {
+          const userInvalidPass = { email: testUsers[0].email, password: 'wrong' }
+          return supertest(app)
+            .get(endpoint.path)
+            .set('Authorization', makeAuthHeader(userInvalidPass))
+            .expect(401, { error: `Unauthorized request` })
+        })
       })
     })
   })
