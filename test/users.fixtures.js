@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 function makeUsersArray(){
     return [
         {
@@ -5,7 +7,7 @@ function makeUsersArray(){
             lname : "Mcqueeney",
             dob : '10/10/1980',
             email : "rmcqueeney@gmail.com",
-            password : "Password1!",
+            password : bcrypt.hashSync("Password1!", 1),
             marital_status : "Married",
             occupation : "Marketing",
             gender : "Male",
@@ -17,7 +19,7 @@ function makeUsersArray(){
             lname : "Lane",
             dob : '10/10/1980',
             email : "slane@gmail.com",
-            password : "Password2!",
+            password : bcrypt.hashSync("Password1!", 1),
             marital_status : "Married",
             occupation : "Fashion Designer",
             gender : "Female",
@@ -29,7 +31,7 @@ function makeUsersArray(){
             lname : "Savage",
             dob : '10/10/1980',
             email : "lsavage@aol.com",
-            password : "Password3!",
+            password : bcrypt.hashSync("Password1!", 1),
             marital_status : "Widow",
             occupation : "Construction",
             gender : "Male",
@@ -83,7 +85,18 @@ function makeAuthUsersArray(){
     ];
 }
 
+function seedUsers(db, users) {
+    const preppedUsers = users.map(user => ({
+      ...user,
+      password: bcrypt.hashSync(user.password, 12)
+    }))
+    return db
+            .into('users')
+            .insert(preppedUsers)
+}
+
 module.exports = {
     makeUsersArray,
-    makeAuthUsersArray
+    makeAuthUsersArray,
+    seedUsers
 }

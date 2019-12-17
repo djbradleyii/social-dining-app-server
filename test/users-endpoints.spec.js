@@ -1,12 +1,12 @@
 const knex = require('knex')
 const app = require('../src/app')
 const jwt = require('jsonwebtoken')
-const { makeUsersArray } = require('./users.fixtures');
+const { makeUsersArray, seedUsers} = require('./users.fixtures');
 //const bcrypt = require('bcryptjs');
 const AuthService = require('../src/auth/auth-service');
 //const helpers = require('./test-helpers');
 
-describe.only('Users Endpoints', function() {
+describe('Users Endpoints', function() {
   let db
   let testUsers = makeUsersArray();
 
@@ -211,30 +211,11 @@ describe.only('Users Endpoints', function() {
   /* Tests for Other users HTTP METHODS below */
 
   describe(`POST /api/users`, () => {
+    context(`User Validation`, () => {
     const testUsers = makeUsersArray();
+    /* SEED USERS */
     beforeEach('insert users', () => {
-      return db
-        .into('users')
-        .insert(testUsers)
-    })
-
-    it(`creates a user, responding with 201 and the new user`, () => {
-      const newUser = {
-        fname : "New",
-        lname : "User",
-        email : "nuser@gmail.com",
-        password : "Iamnewuser1!",
-        dob : '10/10/1980',
-        gender : "Male",
-        occupation : "Marketing",
-        marital_status : "Married",
-        bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
-      }
-      return supertest(app)
-        .post('/api/users')
-        .set('Authorization', makeAuthHeader(testUsers[0]))
-        .send(newUser)
-        .expect(201)
+      seedUsers(db, testUsers)
     })
 
     const requiredFields = ['fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender']
@@ -244,7 +225,7 @@ describe.only('Users Endpoints', function() {
         fname : "New",
         lname : "User",
         email : "nuser@gmail.com",
-        password : "iamnewuser1",
+        password : "Iamnewuser1!",
         dob : "03/02/1979",
         gender : "Male",
         occupation : "Marketing",
@@ -331,12 +312,53 @@ describe.only('Users Endpoints', function() {
             marital_status : "Married",
             bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
           }
+          console.log("duplicateUser", duplicateUser)
           return supertest(app)
             .post('/api/users')
+            .set('Authorization', makeAuthHeader(testUsers[0]))
             .send(duplicateUser)
             .expect(400, { error: `Email already taken` 
           })
         })
+    })
+
+    context(`Happy path`, () => {
+      it(`responds 201, serialized user, storing bcryped password`, () => {
+        const newUser = {
+          fname : "New",
+          lname : "User",
+          email : "nuser@gmail.com",
+          password : "Iamnewuser1!",
+          dob : "03/02/1979",
+          gender : "Male",
+          occupation : "Marketing",
+          marital_status : "Married",
+          bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+        }
+        return supertest(app)
+          .post('/api/users')
+          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .send(newUser)
+          .expect(201)
+          .expect(res => {
+            console.log('Response body of Happy path', res.body);
+            expect(res.body).to.have.property('user_id')
+          })
+          .expect(res =>
+            db
+              .from('users')
+              .select('*')
+              .where({ id: res.body.id })
+              .first()
+              .then(row => {
+                return bcrypt.compare(newUser.password, row.password)
+              })
+              .then(compareMatch => {
+                expect(compareMatch).to.be.true
+              })
+          )
+      })
+    })
   })
 
   describe(`DELETE /api/users/:user_id`, () => {
