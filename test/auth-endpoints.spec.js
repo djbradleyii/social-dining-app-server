@@ -1,11 +1,11 @@
 const knex = require('knex');
 const jwt = require('jsonwebtoken')
 const app = require('../src/app');
-const { makeAuthUsersArray } = require('./users.fixtures');
+const { makeUsersArray } = require('./users.fixtures');
 
-describe('Auth Endpoints', function() {
+describe.skip('Auth Endpoints', function() {
   let db
-  const testUsers = makeAuthUsersArray();
+  const testUsers = makeUsersArray();
   const testUser = testUsers[0]
 
   before('make knex instance', () => {
