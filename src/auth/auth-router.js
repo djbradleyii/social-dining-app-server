@@ -6,8 +6,9 @@ const AuthService = require('./auth-service');
 
 authRouter
   .post('/login', jsonBodyParser, (req, res, next) => {
-     const { email, password } = req.body
-     const loginUser = { email, password }
+     const { email, password } = req.body;
+     const loginUser = { email, password };
+
     for (const [key, value] of Object.entries(loginUser))
         if (value == null)
             return res.status(400).json({
@@ -28,7 +29,7 @@ authRouter
         .then(compareMatch => {
         if (!compareMatch)
             return res.status(400).json({
-            error: 'Incorrect email or password',
+                error: 'Incorrect email or password',
             })
 
             const sub = dbUser.email
