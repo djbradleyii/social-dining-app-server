@@ -49,14 +49,14 @@ usersRouter
       return res.status(400).json({ error: passwordError})
     }
 
-    UsersService.hasUserWithEmail(
-      req.app.get('db'),
-      email
-    )
+      UsersService.hasUserWithEmail(
+        req.app.get('db'),
+        email
+      )
       .then(hasUserWithEmail => {
-        if (hasUserWithEmail)
+        if (hasUserWithEmail){
           return res.status(400).json({ error: `Email already taken` })
-
+        }
         return UsersService.hashPassword(password)
           .then(hashedPassword => {
             const newUser = {
@@ -77,8 +77,8 @@ usersRouter
             )
               .then(user => {
                 res
-                  .status(204)
-                  .end()
+                  .status(201)
+                  .send({user_id: user.id})
               })
           })
       })
