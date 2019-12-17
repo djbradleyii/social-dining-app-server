@@ -23,7 +23,7 @@ const serializeUser = user => ({
 
 usersRouter
   .route('/')
-  .get((req, res, next) => {
+  .get(requireAuth, (req, res, next) => {
     const knexInstance = req.app.get('db')
     UsersService.getAllUsers(knexInstance)
     .then(users => { 
