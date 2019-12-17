@@ -1,5 +1,6 @@
 const knex = require('knex')
 const app = require('../src/app')
+const jwt = require('jsonwebtoken')
 const { makeUsersArray } = require('./users.fixtures');
 //const bcrypt = require('bcryptjs');
 const AuthService = require('../src/auth/auth-service');
@@ -17,9 +18,12 @@ describe.only('Users Endpoints', function() {
     app.set('db', db)
   })
 
-  function makeAuthHeader(user) { 
-   const token = AuthService.createJwt(user.email, {user_id: user.id});
-   return `Bearer ${token}`
+  function makeAuthHeader(user, secret = process.env.JWT_SECRET) { 
+    const token = jwt.sign({ email: user.email }, secret, {
+      subject: user.email,
+      algorithm: 'HS256',
+    })
+    return `Bearer ${token}`
   }
 
   after('disconnect from db', () => db.destroy());
@@ -260,6 +264,79 @@ describe.only('Users Endpoints', function() {
           })
       })
     })
+
+    it(`responds 400 error when password starts with spaces`, () => {
+      const userPasswordStartsSpaces = {
+        fname : "New",
+        lname : "User",
+        email : "nuser@gmail.com",
+        password: ' 1Aa!2Bb@',
+        dob : '10/10/1980',
+        gender : "Male",
+        occupation : "Marketing",
+        marital_status : "Married",
+        bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+      }
+      return supertest(app)
+        .post('/api/users')
+        .send(userPasswordStartsSpaces)
+        .expect(400, { error: `Password must not start or end with empty spaces` })
+    })
+
+    it(`responds 400 error when password ends with spaces`, () => {
+        const userPasswordEndsSpaces = {
+          fname : "New",
+          lname : "User",
+          email : "nuser@gmail.com",
+          password: '1Aa!2Bb@ ',
+          dob : '10/10/1980',
+          gender : "Male",
+          occupation : "Marketing",
+          marital_status : "Married",
+          bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+        }
+        return supertest(app)
+          .post('/api/users')
+          .send(userPasswordEndsSpaces)
+          .expect(400, { error: `Password must not start or end with empty spaces` })
+      })
+
+    it(`responds 400 error when password isn't complex enough`, () => {
+        const userPasswordNotComplex = {
+          fname : "New",
+          lname : "User",
+          email : "nuser@gmail.com",
+          password: '11AAaabb',
+          dob : '10/10/1980',
+          gender : "Male",
+          occupation : "Marketing",
+          marital_status : "Married",
+          bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+        }
+        return supertest(app)
+          .post('/api/users')
+          .send(userPasswordNotComplex)
+          .expect(400, { error: `Password must contain 1 upper case, lower case, number and special character` })
+      })
+
+      it(`responds 400 'Email already taken' when email isn't unique`, () => {
+          const duplicateUser = {
+            fname : "New",
+            lname : "User",
+            email : testUsers[0].email,
+            password: 'Password12!',
+            dob : '10/10/1980',
+            gender : "Male",
+            occupation : "Marketing",
+            marital_status : "Married",
+            bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
+          }
+          return supertest(app)
+            .post('/api/users')
+            .send(duplicateUser)
+            .expect(400, { error: `Email already taken` 
+          })
+        })
   })
 
   describe(`DELETE /api/users/:user_id`, () => {
@@ -390,34 +467,27 @@ describe.only('Users Endpoints', function() {
         ]
       protectedEndpoints.forEach(endpoint => {
       describe(endpoint.name, () => {
-        it(`responds 401 'Missing jwt token' when no basic token`, () => {
+        it(`responds 401 'Missing bearer token' when no bearer token`, () => {
           return supertest(app)
             .get(endpoint.path)
             .expect(401, { error: `Missing bearer token` })
         })
 
-        it(`responds 401 'Unauthorized request' when no credentials in token`, () => {
-          const userNoCreds = { email: ' ', password: ' ' };
+        it(`responds 401 'Unauthorized request' when invalid JWT secret`, () => {
+          const validUser = testUsers[0];
+          const invalidSecret = 'bad-secret';
           return supertest(app)
           .get(endpoint.path)
-          .set('Authorization', makeAuthHeader(userNoCreds))
+          .set('Authorization', makeAuthHeader(validUser, invalidSecret))
           .expect(401, { error: `Unauthorized request` })
         })
 
-        it(`responds 401 'Unauthorized request' when invalid email`, () => {
-            const userInvalidCreds = { email: 'someemail@gmail.com', password: 'existy' }
+        it(`responds 401 'Unauthorized request' when invalid sub in payload`, () => {
+          const invalidUser = { email: 'user-not-existy', id: 1 }
             return supertest(app)
               .get(endpoint.path)
-              .set('Authorization', makeAuthHeader(userInvalidCreds))
+              .set('Authorization', makeAuthHeader(invalidUser))
               .expect(401, { error: `Unauthorized request` })
-          })
-
-        it(`responds 401 'Unauthorized request' when invalid password`, () => {
-          const userInvalidPass = { email: testUsers[0].email, password: 'wrong' }
-          return supertest(app)
-            .get(endpoint.path)
-            .set('Authorization', makeAuthHeader(userInvalidPass))
-            .expect(401, { error: `Unauthorized request` })
         })
       })
     })
