@@ -13,14 +13,25 @@ describe(`Users service object`, function() {
             connection: process.env.TEST_DB_URL,
         });
     });
+    
+    before(() => {
+        db('events').truncate();
+        db('users').truncate();
+    });
 
-    before(() => db('users').truncate());
-
-    afterEach(() => db('users').truncate());
+    afterEach(() => {
+        db('events').truncate();
+        db('users').truncate();
+    });
 
     after(() => db.destroy());
 
     context(`Given 'users' has data`, () => {
+        beforeEach(() => {
+            db('events').truncate();
+            db('users').truncate();
+        });
+
         beforeEach(() => {
             return db
                 .into('users')
@@ -87,9 +98,13 @@ describe(`Users service object`, function() {
     })
 
     context(`Given 'users' table has no data`, () => {
-        beforeEach(() => db('users').truncate());
+        beforeEach(() => {
+            //db('events').truncate();
+            db('users').truncate();
+        });
+        
 
-        it.only(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
+        it(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
             const newUser = {
                 fname : "Samantha",
                 lname : "Lake",
@@ -109,7 +124,7 @@ describe(`Users service object`, function() {
                         id: 1,
                         fname: newUser.fname,
                         lname: newUser.lname,
-                        dob: new Date(newUser.dob).toLocaleString(),
+                        dob: "5/22/1980, 12:00:00 AM",
                         email: newUser.email,
                         password: newUser.password,
                         marital_status: newUser.marital_status,
