@@ -11,7 +11,7 @@ const serializeUser = user => ({
   id: user.id,
   fname: xss(user.fname),
   lname: xss(user.lname),
-  dob: new Date(user.dob),
+  dob: user.dob,
   email: xss(user.email),
   password: xss(user.password),
   marital_status: xss(user.marital_status),
@@ -43,7 +43,6 @@ usersRouter
       }
     } 
 
-    console.log('delete console log from users-router checking req.user.id for event and  attendees routers', req.user.id);
     const passwordError = UsersService.validatePassword(password);
   
     if(passwordError){
@@ -63,7 +62,7 @@ usersRouter
             const newUser = {
               fname,
               lname,
-              dob: new Date(dob),
+              dob: dob,
               email,
               password: hashedPassword,
               marital_status,
@@ -77,9 +76,9 @@ usersRouter
               newUser
             )
               .then(user => {
-                res
+                 res
                   .status(201)
-                  .send({user_id: user.id})
+                  .json({user_id: user.id})
               })
           })
       })
