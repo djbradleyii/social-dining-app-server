@@ -2,7 +2,7 @@ const knex = require('knex');
 const UsersService = require('../src/users/users-service');
 const { makeUsersArray, makeUsersArrayServices } = require('./users.fixtures');
 
-describe.only(`Users service object`, function() {
+describe.skip(`Users service object`, function() {
     let db;
 
     const testUsers = makeUsersArray();
@@ -49,7 +49,6 @@ describe.only(`Users service object`, function() {
             const thirdTestUser = testUsers[thirdId - 1];
             return UsersService.getUserById(db, thirdId)
                 .then(res => {
-
                     expect(res.fname).to.eql(thirdTestUser.fname)
                     expect(res.lname).to.eql(thirdTestUser.lname)
                     expect(res.email).to.eql(thirdTestUser.email)
@@ -110,7 +109,6 @@ describe.only(`Users service object`, function() {
     context(`Given 'users' table has no data`, () => {
         beforeEach(() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
         
-
         it(`insertUser() inserts a new user and resolves the new user with an 'id'`, () => {
             const newUser = {
                 fname : "Samantha",
