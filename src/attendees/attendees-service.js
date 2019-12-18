@@ -8,21 +8,27 @@ const AttendeesService = {
             .insert(newAttendee)
             .into('attendees')
             .returning('*')
-            .then(rows => {
-                return rows[0]
+            .then(([rows]) => {
+                return rows
             })
     },
-    getAttendeeById(knex, id){
+    getAllEventsByUserId(knex, user_id){
         return knex
             .from('attendees')
             .select('*')
-            .where('id',id)
+            .where('user_id',user_id)
+    },
+    getAllAttendeesByEventId(knex, user_id, event_id){
+        return knex
+            .from('attendees')
+            .select('*')
+            .where('user_id',user_id).andWhere('event_id', event_id)
             .first()
     },
-    deleteAttendee(knex, id){
+    deleteAttendeeByAttendeeId(knex, attendee_id){
         return knex('attendees')
-            .where({id})
-            .delete()
+        .where('id', attendee_id)
+        .delete()
     }
 };
 
