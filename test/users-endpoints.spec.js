@@ -1,12 +1,13 @@
-const knex = require('knex')
-const app = require('../src/app')
-const jwt = require('jsonwebtoken')
+const knex = require('knex');
+const app = require('../src/app');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const { makeUsersArray, seedUsers} = require('./users.fixtures');
 //const bcrypt = require('bcryptjs');
 const AuthService = require('../src/auth/auth-service');
 //const helpers = require('./test-helpers');
 
-describe('Users Endpoints', function() {
+describe.only('Users Endpoints', function() {
   let db
   let testUsers = makeUsersArray();
 
@@ -25,7 +26,6 @@ describe('Users Endpoints', function() {
     })
     return `Bearer ${token}`
   }
-
   after('disconnect from db', () => db.destroy());
   before('clean the table', () => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
   afterEach('cleanup',() => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
@@ -71,7 +71,7 @@ describe('Users Endpoints', function() {
         fname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
         lname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
         dob : '10/10/1980',
-        email : `someemail@gmail.com`,
+        email : `${testUser[0].email}`,
         password : 'Password1!',
         marital_status : "Married",
         occupation : 'malicious occupation <script>alert("xss");</script>',
@@ -80,15 +80,15 @@ describe('Users Endpoints', function() {
         date_created: '10/10/1980'
     }
     const expectedUser = {
-      fname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
-      lname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
+      fname : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`,
+      lname : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`,
       dob : '10/10/1980',
-      email : `someemail@gmail.com`,
+      email : `${testUser[0].email}`,
       password : 'Password1!',
       marital_status : "Married",
       occupation : 'malicious occupation &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
       gender : "Male",
-      bio : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`, 
+      bio : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`, 
       date_created: '10/10/1980'
   }
 
@@ -124,7 +124,7 @@ describe('Users Endpoints', function() {
         return supertest(app)
           .get(`/api/users/${userId}`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(404, { error: { message: `User doesn't exist` } })
+          .expect(401, { error: 'Unauthorized request' })
       })
     })
 
@@ -156,12 +156,12 @@ describe('Users Endpoints', function() {
     })
 
     context(`Given an XSS attack user`, () => {
-      const testUser = makeUsersArray();
+      const testUsers = makeUsersArray();
       const maliciousUser = {
         fname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
         lname : `<img src="https://url.not.exist" onerror="alert(document.cookie);">. Not <strong>all</strong> bad.`,
         dob : '10/10/1980',
-        email : `someemail@gmail.com`,
+        email : `${testUsers[0].email}`,
         password : 'Password1!',
         marital_status : "Married",
         occupation : 'malicious occupation <script>alert("xss");</script>',
@@ -171,18 +171,18 @@ describe('Users Endpoints', function() {
     }
       const expectedUser = {
         fname : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`,
-        lname : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`,
+        lname : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`,
         dob : '10/10/1980',
-        email : `someemail@gmail.com`,
+        email : `${testUsers[0].email}`,
         password : 'Password1!',
         marital_status : "Married",
         occupation : 'malicious occupation &lt;script&gt;alert(\"xss\");&lt;/script&gt;',
         gender : "Male",
-        bio : `<img src="https://url.not.exist">. But not <strong>all</strong> bad.`, 
+        bio : `<img src="https://url.not.exist">. Not <strong>all</strong> bad.`, 
         date_created: '10/10/1980'
     }
 
-      beforeEach('insert users', () => {
+      beforeEach('insert malicious users', () => {
         return db
         .into('users')
         .insert(maliciousUser)
@@ -191,17 +191,17 @@ describe('Users Endpoints', function() {
       it('removes XSS attack content', () => {
         return supertest(app)
           .get(`/api/users/1`)
-          .set('Authorization', makeAuthHeader(testUser))
+          .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-            expect(res.body[0].fname).to.eql(expectedUser.fname)
-            expect(res.body[0].lname).to.eql(expectedUser.lname)
-            expect(res.body[0].email).to.eql(expectedUser.email)
-            expect(res.body[0].password).to.eql(expectedUser.password)
-            expect(res.body[0].marital_status).to.eql(expectedUser.marital_status)
-            expect(res.body[0].occupation).to.eql(expectedUser.occupation)
-            expect(res.body[0].gender).to.eql(expectedUser.gender)
-            expect(res.body[0].bio).to.eql(expectedUser.bio)
+            expect(res.body.fname).to.eql(expectedUser.fname)
+            expect(res.body.lname).to.eql(expectedUser.lname)
+            expect(res.body.email).to.eql(expectedUser.email)
+            expect(res.body.password).to.eql(expectedUser.password)
+            expect(res.body.marital_status).to.eql(expectedUser.marital_status)
+            expect(res.body.occupation).to.eql(expectedUser.occupation)
+            expect(res.body.gender).to.eql(expectedUser.gender)
+            expect(res.body.bio).to.eql(expectedUser.bio) 
           })
       })
     })
@@ -213,9 +213,13 @@ describe('Users Endpoints', function() {
   describe(`POST /api/users`, () => {
     context(`User Validation`, () => {
     const testUsers = makeUsersArray();
-    /* SEED USERS */
+    const preppedUsers = seedUsers(testUsers);
+
     beforeEach('insert users', () => {
-      seedUsers(db, testUsers)
+      
+      return db
+        .into('users')
+        .insert(preppedUsers)
     })
 
     const requiredFields = ['fname', 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender']
@@ -312,7 +316,7 @@ describe('Users Endpoints', function() {
             marital_status : "Married",
             bio : "Nam ullamcorper finibus purus, id facilisis nisi scelerisque in. Aliquam vel nisi id tellus efficitur sagittis. Sed vel maximus erat. Nunc dapibus purus massa, in molestie ipsum gravida vel. Phasellus varius nec risus a ornare.", 
           }
-          console.log("duplicateUser", duplicateUser)
+
           return supertest(app)
             .post('/api/users')
             .set('Authorization', makeAuthHeader(testUsers[0]))
@@ -341,14 +345,13 @@ describe('Users Endpoints', function() {
           .send(newUser)
           .expect(201)
           .expect(res => {
-            console.log('Response body of Happy path', res.body);
             expect(res.body).to.have.property('user_id')
           })
           .expect(res =>
             db
               .from('users')
               .select('*')
-              .where({ id: res.body.id })
+              .where({ id: res.body.user_id })
               .first()
               .then(row => {
                 return bcrypt.compare(newUser.password, row.password)
@@ -367,12 +370,20 @@ describe('Users Endpoints', function() {
         const userId = 123456
         return supertest(app)
           .delete(`/api/users/${userId}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(404, { error: { message: `User doesn't exist` } })
+          .set('Authorization', makeAuthHeader(testUsers[1]))
+          .expect(401, { error: 'Unauthorized request' })
       })
     })
 
     context('Given there are users in the database', () => {
+      const testUsers = makeUsersArray();
+  
+      beforeEach('insert users', () => {
+        return db
+          .into('users')
+          .insert(testUsers)
+      })
+
       it('responds with 204 and removes the user', () => {
         const idToRemove = 2
         const expectedUsers = testUsers.filter(user => user.id !== idToRemove)
@@ -383,7 +394,10 @@ describe('Users Endpoints', function() {
           .then(res =>
             supertest(app)
               .get(`/api/users`)
-              .expect(expectedUsers)
+              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .expect(res => {
+                expect(res.body).to.have.lengthOf(2)
+              })
           )
       })
     })
@@ -396,11 +410,19 @@ describe('Users Endpoints', function() {
         return supertest(app)
           .delete(`/api/users/${userId}`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(404, { error: { message: `User doesn't exist` } })
+          .expect(401, { error: 'Unauthorized request' })
       })
     })
 
     context('Given there are users in the database', () => {
+      const testUsers = makeUsersArray();
+  
+      beforeEach('insert users', () => {
+        return db
+          .into('users')
+          .insert(testUsers)
+      })
+
       it('responds with 204 and updates the user', () => {
         const idToUpdate = 2
         const updateUser = {
@@ -426,8 +448,17 @@ describe('Users Endpoints', function() {
           .then(res =>
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
-              .then()
-              .expect(expectedUser)
+              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .then(res => {
+                expect(res.body.fname).to.eql(expectedUser.fname)
+                expect(res.body.lname).to.eql(expectedUser.lname)
+                expect(res.body.email).to.eql(expectedUser.email)
+                expect(res.body.password).to.eql(expectedUser.password)
+                expect(res.body.marital_status).to.eql(expectedUser.marital_status)
+                expect(res.body.occupation).to.eql(expectedUser.occupation)
+                expect(res.body.gender).to.eql(expectedUser.gender)
+                expect(res.body.bio).to.eql(expectedUser.bio)
+              })   
           )
       })
 
@@ -451,10 +482,9 @@ describe('Users Endpoints', function() {
           ...testUsers[idToUpdate - 1],
           ...updateUser
         }
-
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
+          .set('Authorization', makeAuthHeader(testUsers[0]))
           .send({
             ...updateUser,
             fieldToIgnore: 'should not be in GET response'
@@ -463,7 +493,17 @@ describe('Users Endpoints', function() {
           .then(res =>
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
-              .expect(expectedUser)
+              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .then(res => {
+                expect(res.body.fname).to.eql(expectedUser.fname)
+                expect(res.body.lname).to.eql(expectedUser.lname)
+                expect(res.body.email).to.eql(expectedUser.email)
+                expect(res.body.password).to.eql(expectedUser.password)
+                expect(res.body.marital_status).to.eql(expectedUser.marital_status)
+                expect(res.body.occupation).to.eql(expectedUser.occupation)
+                expect(res.body.gender).to.eql(expectedUser.gender)
+                expect(res.body.bio).to.eql(expectedUser.bio)
+              })
           )
       })
     })
@@ -506,7 +546,7 @@ describe('Users Endpoints', function() {
 
         it(`responds 401 'Unauthorized request' when invalid sub in payload`, () => {
           const invalidUser = { email: 'user-not-existy', id: 1 }
-            return supertest(app)
+               return supertest(app)
               .get(endpoint.path)
               .set('Authorization', makeAuthHeader(invalidUser))
               .expect(401, { error: `Unauthorized request` })
