@@ -59,10 +59,16 @@ eventsRouter
   
   
     EventsService.insertEvent(req.app.get('db'), newEvent)
-    .then(eventId => {
-      console.log('eventId', eventId);
-      res
-      .status(204).end();
+    .then(event => {
+      const organizerAsAttended = {
+        user_id: event.organizer,
+        event_id: event.id
+      }
+      AttendeesService.insertAttendee(req.app.get('db'), organizerAsAttended)
+      .then((attendee) => {
+        res.attendee = attendee
+        res.status(200).json({ event, attendee})
+      })
     })
     .catch(next);
   })
@@ -128,5 +134,29 @@ eventsRouter
       .catch(next)
       logger.info(`Event with event_id ${req.params.event_id} deleted.`);  
   })
+
+  eventsRouter
+  .route('/:event_id/attendees')
+  .all(requireAuth)
+  .all((req, res, next) => {
+    EventsService.getAllAttendeesByEventId(
+      req.app.get('db'),
+      parseInt(req.params.event_id)
+    )
+      .then(attendees => {
+        if (attendees.length === 0) {
+          return res.status(404).json({
+            error: { message: `Event doesn't exist` }
+          })
+        }
+        res.attendees = attendees; // save the event for the next middleware
+        next();
+      })
+      .catch(next)
+})
+  .get((req, res, next) => {
+    res.json(res.attendees);
+  })
+
 
 module.exports = eventsRouter
