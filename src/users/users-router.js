@@ -120,18 +120,9 @@ usersRouter
       }
     }  */
   if(password){
-    // password length
-    if (password.length < 8 || password.length > 36) {
-      return res
-        .status(400)
-        .send('Password must be between 8 and 36 characters');
-    }
-
-    // password contains digit, using a regex here
-    if (!password.match(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/)) {
-      return res
-        .status(400)
-        .send('Password must be contain at least one digit');
+    const passwordError = UsersService.validatePassword(password);
+    if(passwordError){
+      return res.status(400).json({ error: passwordError})
     }
   }
      
