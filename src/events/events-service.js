@@ -8,8 +8,8 @@ const EventsService = {
             .insert(newEvent)
             .into('events')
             .returning('*')
-            .then(rows => {
-                return rows[0]
+            .then(([event]) => {
+                return event
             })
     },
     getEventById(knex, id){
@@ -18,6 +18,12 @@ const EventsService = {
             .select('*')
             .where('id',id)
             .first()
+    },
+    getAllAttendeesByEventId(knex, event_id){
+        return knex
+            .from('attendees')
+            .select('*')
+            .where('id',event_id)
     },
     deleteEvent(knex, id){
         return knex('events')
@@ -28,6 +34,10 @@ const EventsService = {
         return knex('events')
             .where({ id })
             .update(eventUpdates)
+    },
+    getEventByKeyword(knex, keyword){
+        return knex('events')
+            .where('title', 'like', `%${keyword}%`)
     }
 };
 
