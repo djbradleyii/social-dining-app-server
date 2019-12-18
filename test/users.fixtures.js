@@ -85,14 +85,12 @@ function makeUsersArrayServices(){
     ];
 }
 
-function seedUsers(db, users) {
+function seedUsers(users) {
     const preppedUsers = users.map(user => ({
       ...user,
       password: bcrypt.hashSync(user.password, 12)
-    }))
-    return db
-            .into('users')
-            .insert(preppedUsers)
+      }))
+    return preppedUsers;
 }
 
 module.exports = {
