@@ -2,15 +2,7 @@ const EventsService = {
     getAllEvents(knex){
         return knex.select('*')
             .from('events')
-    },
-    insertEvent(knex, newEvent){
-        return knex
-            .insert(newEvent)
-            .into('events')
-            .returning('*')
-            .then(([event]) => {
-                return event
-            })
+            .orderBy('date', 'desc')
     },
     getEventById(knex, id){
         return knex
@@ -19,11 +11,19 @@ const EventsService = {
             .where('id',id)
             .first()
     },
-    getAllAttendeesByEventId(knex, event_id){
-        return knex
-            .from('attendees')
-            .select('*')
-            .where('id',event_id)
+    getEventByKeyword(knex, keyword){
+        /* Get event by keyword search; Used by Search Component on Client */
+        return knex.raw(`select * from events where (title || address || restaurant || event_purpose || description) like '%${keyword}%'`)
+            .then(res => {
+                return res.rows
+            })
+    },
+    getAllEventsByUserId(knex, user_id){
+        /* Get's all of the events that the User is scheduled to attend for Dashboard on client */
+        return knex.raw(`select * from attendees inner join events on attendees.event_id = events.id inner join users on attendees.user_id = users.id where users.id = ${user_id}`)
+            .then(res => {
+                return res.rows
+            })
     },
     deleteEvent(knex, id){
         return knex('events')
@@ -35,10 +35,15 @@ const EventsService = {
             .where({ id })
             .update(eventUpdates)
     },
-    getEventByKeyword(knex, keyword){
-        return knex('events')
-            .where('title', 'like', `%${keyword}%`)
-    }
+    insertEvent(knex, newEvent){
+        return knex
+            .insert(newEvent)
+            .into('events')
+            .returning('*')
+            .then(([event]) => {
+                return event
+            })
+    },
 };
 
 module.exports = EventsService;
