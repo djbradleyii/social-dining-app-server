@@ -2,7 +2,7 @@ const knex = require('knex');
 const UsersService = require('../src/users/users-service');
 const { makeUsersArray, makeUsersArrayServices } = require('./users.fixtures');
 
-describe.skip(`Users service object`, function() {
+describe(`Users service object`, function() {
     let db;
 
     const testUsers = makeUsersArray();

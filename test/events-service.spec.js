@@ -1,13 +1,13 @@
 const knex = require('knex');
 const EventsService = require('../src/events/events-service');
-const { makeUsersArray } = require('./users.fixtures');
-const { makeEventsArray } = require('./events.fixtures');
+const { makeEventsArray, makeUsersArrayForEventTest, makeAttendeesArrayForEventTest } = require('./events.fixtures');
 
 describe(`Events service object`, function() {
     let db;
 
-    let testUsers = makeUsersArray();
+    let testUsers = makeUsersArrayForEventTest();
     let testEvents = makeEventsArray();
+    let testAttendees = makeAttendeesArrayForEventTest();
 
     before(() => {
         db = knex({
@@ -34,12 +34,17 @@ describe(`Events service object`, function() {
                     .into('events')
                     .insert(testEvents)
                 })
+                .then(() => {
+                    return db
+                        .into('attendees')
+                        .insert(testAttendees)
+                    })
         });
 
-        it(`getAllEvents() resolves all events from 'events' table`, () => {
+        it(`getAllEvents() resolves all events from 'events' table`, () => {;
             return EventsService.getAllEvents(db)
                 .then(res => {
-                    expect(res).to.have.lengthOf(3)
+                    expect(res).to.have.lengthOf(10)
                     expect(res[0].organizer).to.eql(testEvents[0].organizer)
                     expect(res[0].title).to.eql(testEvents[0].title)
                     expect(res[0].event_purpose).to.eql(testEvents[0].event_purpose)
@@ -50,18 +55,81 @@ describe(`Events service object`, function() {
                   })
         })
 
-        it(`getEventByID() resolves an event by id from 'event' table`, () => {
-            const thirdId = 3;
-            const thirdTestEvent = testEvents[thirdId - 1];
-            return EventsService.getEventById(db, thirdId)
+        it(`getEventById() resolves all events from 'events' table`, () => {
+            const event_id = 3;
+            const testEvent = testEvents[event_id - 1];
+            return EventsService.getEventById(db, event_id)
                 .then(res => {
-                    expect(res.organizer).to.eql(thirdTestEvent.organizer)
-                    expect(res.title).to.eql(thirdTestEvent.title)
-                    expect(res.event_purpose).to.eql(thirdTestEvent.event_purpose)
-                    expect(res.restaurant).to.eql(thirdTestEvent.restaurant)
-                    expect(res.address).to.eql(thirdTestEvent.address)
-                    expect(res.description).to.eql(thirdTestEvent.description)
-                    expect(res.singles_only).to.eql(thirdTestEvent.singles_only)
+                    expect(res.organizer).to.eql(testEvent.organizer)
+                    expect(res.title).to.eql(testEvent.title)
+                    expect(res.event_purpose).to.eql(testEvent.event_purpose)
+                    expect(res.restaurant).to.eql(testEvent.restaurant)
+                    expect(res.address).to.eql(testEvent.address)
+                    expect(res.description).to.eql(testEvent.description)
+                    expect(res.singles_only).to.eql(testEvent.singles_only)
+                })
+        })
+
+        it(`getEventByKeyword() resolves an event with keyword in restaurant from 'event' table`, () => {
+            const term = 'Noodle';
+            return EventsService.getEventByKeyword(db, term)
+                .then(res => {
+                    expect(res).to.have.lengthOf(3)
+                    expect(res[0].restaurant).to.have.string(term)
+                    expect(res[1].restaurant).to.have.string(term)
+                    expect(res[2].restaurant).to.have.string(term)
+                  })
+        })
+
+        it(`getEventByKeyword() resolves an event with keyword in description from 'event' table`, () => {
+            const term = 'facilisis';
+            return EventsService.getEventByKeyword(db, term)
+                .then(res => {
+                    expect(res).to.have.lengthOf(10)
+                    expect(res[0].description).to.have.string(term)
+                    expect(res[1].description).to.have.string(term)
+                    expect(res[2].description).to.have.string(term)
+                  })
+        })
+
+        it(`getEventByKeyword() resolves an event with keyword in title from 'event' table`, () => {
+            const term = 'Title';
+            return EventsService.getEventByKeyword(db, term)
+                .then(res => {
+                    expect(res).to.have.lengthOf(10)
+                    expect(res[0].title).to.have.string(term)
+                    expect(res[1].title).to.have.string(term)
+                    expect(res[2].title).to.have.string(term)
+                  })
+        })
+
+        it(`getEventByKeyword() resolves an event with keyword in address from 'event' table`, () => {
+            const term = 'Angeles';
+            return EventsService.getEventByKeyword(db, term)
+                .then(res => {
+                    expect(res).to.have.lengthOf(10)
+                    expect(res[0].address).to.have.string(term)
+                    expect(res[1].address).to.have.string(term)
+                    expect(res[2].address).to.have.string(term)
+                  })
+        })
+
+        it(`getEventByKeyword() resolves an event with keyword in event_purpose from 'event' table`, () => {
+            const term = 'Single';
+            return EventsService.getEventByKeyword(db, term)
+                .then(res => {
+                    expect(res).to.have.lengthOf(3)
+                    expect(res[0].event_purpose).to.have.string(term)
+                    expect(res[1].event_purpose).to.have.string(term)
+                  })
+        })
+
+        it(`getAllEventsByUserId() resolves all events by userid from 'event' table`, () => {
+            const user_id = 3; //organizer in events table
+            return EventsService.getAllEventsByUserId(db, user_id)
+                .then(res => {
+                    expect(res).to.be.an('array');
+                    expect(res).to.have.lengthOf(4)
                   })
         })
 
@@ -71,7 +139,7 @@ describe(`Events service object`, function() {
                 .then(() => EventsService.getAllEvents(db))
                 .then(allEvents => {
                     const expected = testEvents.filter(event => event.id !== eventId);
-                    expect(allEvents).to.have.lengthOf(2);
+                    expect(allEvents).to.have.lengthOf(9);
                     expect(allEvents[0].organizer).to.eql(expected[0].organizer)
                     expect(allEvents[0].title).to.eql(expected[0].title)
                     expect(allEvents[0].event_purpose).to.eql(expected[0].event_purpose)
@@ -123,6 +191,7 @@ describe(`Events service object`, function() {
                 .into('users')
                 .insert(testUsers)
         });
+
         it(`insertEvents() inserts a new event and resolves the new event with an 'id'`, () => {
             const newEvent = {
                 organizer: 1,

@@ -7,7 +7,7 @@ const { makeUsersArray, seedUsers} = require('./users.fixtures');
 const AuthService = require('../src/auth/auth-service');
 //const helpers = require('./test-helpers');
 
-describe.only('Users Endpoints', function() {
+describe('Users Endpoints', function() {
   let db
   let testUsers = makeUsersArray();
 
