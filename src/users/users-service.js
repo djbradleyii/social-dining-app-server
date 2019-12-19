@@ -23,13 +23,6 @@ const UsersService = {
             .where('id',id)
             .first()
     },
-/*     getUserEventsByUserId(knex, id){
-        return knex
-        .from('events')
-        .select('*')
-        .where('organizer',id)
-        .first()
-    }, */
     deleteUser(knex, id){
         return knex('users')
             .where({id})
