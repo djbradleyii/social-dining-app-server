@@ -2,7 +2,7 @@ const knex = require('knex');
 const jwt = require('jsonwebtoken')
 const app = require('../src/app');
 const bcrypt = require('bcryptjs');
-const { makeUsersArray } = require('./users.fixtures');
+const { makeUsersArray } = require('./auth.fixtures');
 
 function seedUsers(users) {
   const preppedUsers = users.map(user => ({
@@ -12,7 +12,7 @@ function seedUsers(users) {
   return preppedUsers;
 }
 
-describe('Auth Endpoints', function() {
+describe.only('Auth Endpoints', function() {
   let db
   const testUsers = makeUsersArray();
   const testUser = testUsers[0]
@@ -32,10 +32,11 @@ describe('Auth Endpoints', function() {
   afterEach('clean the table', () => db.raw('TRUNCATE attendees, events, users RESTART IDENTITY CASCADE'));
 
   describe(`POST /api/auth/login`, () => {
+    const preppedUsers = seedUsers(testUsers);
     beforeEach('insert users', () => {
         return db
           .into('users')
-          .insert(testUsers)
+          .insert(preppedUsers)
       })
 
      const requiredFields = ['email', 'password']
@@ -74,7 +75,7 @@ describe('Auth Endpoints', function() {
             .expect(400, { error: `Incorrect email or password` })
     })
 
-    it(`responds 200 and JWT auth token using secret when valid credentials`, () => {     
+    it(`responds 200 and JWT auth token using secret when valid credentials`, () => {       
       const userValidCreds = {
        email: testUsers[0].email,
        password: testUsers[0].password,
@@ -91,7 +92,8 @@ describe('Auth Endpoints', function() {
         .post('/api/auth/login')
         .send(userValidCreds)
         .expect(200, {
-                authToken: expectedToken
+                authToken: expectedToken, 
+                user_id: testUsers[0].id
         })
    })
   })
