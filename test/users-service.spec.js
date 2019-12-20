@@ -1,12 +1,13 @@
 const knex = require('knex');
 const UsersService = require('../src/users/users-service');
-const { makeUsersArray, makeUsersArrayServices } = require('./users.fixtures');
+const { makeUsersArray, makeEventsArrayForUsersService, makeAttendeesArrayForUsersTest } = require('./users.fixtures');
 
 describe(`Users service object`, function() {
     let db;
 
     const testUsers = makeUsersArray();
-    const usersDelete = makeUsersArrayServices();
+    const testEvents = makeEventsArrayForUsersService();
+    const testAttendees = makeAttendeesArrayForUsersTest();
 
     before(() => {
         db = knex({
@@ -28,6 +29,16 @@ describe(`Users service object`, function() {
             return db
                 .into('users')
                 .insert(testUsers)
+                .then(() => {
+                return db
+                    .into('events')
+                    .insert(testEvents)
+                })
+                .then(() => {
+                    return db
+                        .into('attendees')
+                        .insert(testAttendees)
+                    })
         });
 
         it(`getAllUsers() resolves all users from 'users' table`, () => {
@@ -60,13 +71,12 @@ describe(`Users service object`, function() {
                 })
         })
 
-        it.skip(`getAllEventsByUserId() resolves all events by userid from 'event' table`, () => {
-            const user_id = 3; //organizer in events table
+        it(`getAllEventsByUserId() resolves all events by userid from 'event' table`, () => {
+            const user_id = 1; //organizer in events table
             return UsersService.getAllEventsByUserId(db, user_id)
                 .then(res => {
-                    console.log('------->>>>', res)
                     expect(res).to.be.an('array');
-                    expect(res).to.have.lengthOf(4)
+                    expect(res).to.have.lengthOf(3)
                   })
         })
 
@@ -75,7 +85,7 @@ describe(`Users service object`, function() {
             return UsersService.deleteUser(db, userId)
                 .then(() => UsersService.getAllUsers(db))
                 .then(allUsers => {
-                    const expected = usersDelete.filter(user => user.id !== userId);
+                    const expected = testUsers.filter(user => user.id !== userId);
                     expect(allUsers).to.have.lengthOf(2);
                     expect(allUsers[0].fname).to.eql(expected[0].fname)
                     expect(allUsers[0].lname).to.eql(expected[0].lname)
