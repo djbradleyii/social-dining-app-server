@@ -2,14 +2,13 @@ const knex = require('knex');
 const app = require('../src/app');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { makeUsersArray, seedUsers} = require('./users.fixtures');
-//const bcrypt = require('bcryptjs');
-const AuthService = require('../src/auth/auth-service');
-//const helpers = require('./test-helpers');
+const { makeUsersArray, makeEventsArrayForUsersService, makeAttendeesArrayForUsersTest, seedUsers } = require('./users.fixtures');
 
 describe('Users Endpoints', function() {
   let db
   let testUsers = makeUsersArray();
+  let testEvents = makeEventsArrayForUsersService();
+  let testAttendees = makeAttendeesArrayForUsersTest();
 
   before('make knex instance', () => {
     db = knex({
@@ -207,6 +206,61 @@ describe('Users Endpoints', function() {
     })
   })
 
+  describe(`GET /api/users/:user_id/events`, () => {
+    context(`Given no users`, () => {
+      it(`responds with 404`, () => {
+        const userId = 123456
+        return supertest(app)
+          .get(`/api/users/${userId}/events`)
+          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .expect(401, { error: 'Unauthorized request' })
+      })
+    })
+
+    context('Given there are users in the database', () => {
+      beforeEach(() => {
+        return db
+            .into('users')
+            .insert(testUsers)
+            .then(() => {
+            return db
+                .into('events')
+                .insert(testEvents)
+            })
+            .then(() => {
+                return db
+                    .into('attendees')
+                    .insert(testAttendees)
+                })
+        });
+
+      it('responds with 200 and Gets all of the events that the User is scheduled to attend', () => {
+        const userId = 2;
+        const expectedUser = testUsers[userId - 1];
+        const expectedEvent = testEvents.find(event => event.organizer === userId)
+        return supertest(app)
+          .get(`/api/users/${userId}/events`)
+          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .expect(200)
+          .expect(res => {
+            expect(res.body).to.have.property('user')
+            expect(res.body).to.have.property('events')
+            expect(res.body.user.fname).to.eql(expectedUser.fname)
+            expect(res.body.user.lname).to.eql(expectedUser.lname)
+            expect(res.body.user.email).to.eql(expectedUser.email)
+            expect(res.body.user.password).to.eql(expectedUser.password)
+            expect(res.body.user.marital_status).to.eql(expectedUser.marital_status)
+            expect(res.body.user.occupation).to.eql(expectedUser.occupation)
+            expect(res.body.user.gender).to.eql(expectedUser.gender)
+            expect(res.body.user.bio).to.eql(expectedUser.bio)
+            expect(res.body.events[0].restaurant).to.eql(expectedEvent.restaurant)
+            expect(res.body.events[0].address).to.eql(expectedEvent.address)
+            expect(res.body.events[0].event_purpose).to.eql(expectedEvent.event_purpose)
+            expect(res.body.events[0].description).to.eql(expectedEvent.description)
+          })
+      })
+    })
+  })
 
   /* Tests for Other users HTTP METHODS below */
 
