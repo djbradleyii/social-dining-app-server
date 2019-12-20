@@ -1,5 +1,6 @@
 const knex = require('knex');
 const AttendeesService = require('../src/attendees/attendees-service');
+const EventsService = require('../src/events/events-service')
 const { makeAttendeesArray, makeUsersArrayForAttendeesTest, makeEventsArrayForAttendeesTest } = require('./attendees.fixtures');
 
 describe(`Attendees service object`, function() {
@@ -57,40 +58,15 @@ describe(`Attendees service object`, function() {
                   })
         })
 
-        it(`getAllAttendeesByEventId() resolves all attendees from 'attendees' table`, () => {
-            const event_id = 10;
-            const testAttendee = testAttendees.filter(attendee => attendee.event_id === event_id)
-            const testEvent = testEvents[testAttendee[0].event_id - 1];
-            return AttendeesService.getAllAttendeesByEventId(db, event_id)
-                .then(res => {
-                    expect(res).to.have.lengthOf(2)
-                    expect(res[0].title).to.eql(testEvent.title)
-                    expect(res[0].attendee).to.eql(testUsers[testAttendee[0].user_id - 1].fname)
-                    expect(res[1].attendee).to.eql(testUsers[testAttendee[1].user_id - 1].fname)
-                  })
-        })
-
-        it(`getAttendeesCountByEventId() resolves all attendees from 'attendees' table`, () => {
-            const event_id = 1;
-            return AttendeesService.getAttendeesCountByEventId(db, event_id)
-                .then(res => {
-                    expect(res).to.have.eql([ { 'Attendee_Count': '2' } ])
-                  })
-        })
-
-        it(`deleteAttendeeFromEvent() delete an attendee from an event by attendee_id`, () => {
-            const user_id = 3;
-            const event_id = 10;
-            return AttendeesService.deleteAttendeeFromEvent(db, user_id, event_id)
-                .then(() => AttendeesService.getAllAttendeesByEventId(db, event_id)
+        it(`deleteAttendee() delete an attendee from an event by attendee_id`, () => {
+            const attendee_id = 2;
+            return AttendeesService.deleteAttendee(db, attendee_id)
+                .then(() => AttendeesService.getAllAttendees(db)
                 .then(res => {
                     expect(res).to.be.an('array')
-                    expect(res).to.have.lengthOf(1)
+                    expect(res).to.have.lengthOf(12)
                     expect(res[0]).to.have.property('user_id')
                     expect(res[0]).to.have.property('event_id')
-                    expect(res[0]).to.have.property('title')
-                    expect(res[0]).to.have.property('attendee')
-                    expect(res[0]).to.not.have.property('user_id', user_id)
                 }))
         })
     })

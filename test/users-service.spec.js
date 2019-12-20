@@ -60,6 +60,16 @@ describe(`Users service object`, function() {
                 })
         })
 
+        it.skip(`getAllEventsByUserId() resolves all events by userid from 'event' table`, () => {
+            const user_id = 3; //organizer in events table
+            return UsersService.getAllEventsByUserId(db, user_id)
+                .then(res => {
+                    console.log('------->>>>', res)
+                    expect(res).to.be.an('array');
+                    expect(res).to.have.lengthOf(4)
+                  })
+        })
+
         it(`deleteUser() removes a user by id from 'user' table`, () => {
             const userId = 3;
             return UsersService.deleteUser(db, userId)

@@ -203,17 +203,14 @@ describe('Events Endpoints', function() {
 
       it('responds with 200 and a list of attendees', () => {
         const eventId = 10;
-        const attendees = testAttendees.filter(attendee => attendee.event_id === eventId)
         return supertest(app)
           .get(`/api/events/${eventId}/attendees`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-              expect(res.body).to.have.a.lengthOf(2)
-              expect(res.body[0].user_id).to.eql(attendees[0].user_id)
-              expect(res.body[0].event_id).to.eql(attendees[0].event_id)
-              expect(res.body[1].user_id).to.eql(attendees[1].user_id)
-              expect(res.body[1].event_id).to.eql(attendees[1].event_id)
+              expect(res.body.attendees).to.have.a.lengthOf(2)
+              expect(res.body.attendees[0]).to.have.property('user_id')
+              expect(res.body.attendees[0]).to.have.property('event_id')
           })
       })
     })
