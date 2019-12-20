@@ -158,4 +158,34 @@ usersRouter
       logger.info(`User with user_id ${req.params.user_id} deleted.`); 
   })
 
+  usersRouter
+  .route('/:user_id/events')
+  .all(requireAuth)
+  .all((req, res, next) => {
+    UsersService.getUserById(
+      req.app.get('db'),
+      parseInt(req.params.user_id)
+    )
+      .then(user => {
+        if (!user) {
+          return res.status(404).json({
+            error: { message: `User doesn't exist` }
+          })
+        }
+        res.user = user; // save the user for the next middleware
+        next();
+      })
+      .catch(next)
+})
+  .get((req, res, next) => {
+    UsersService.getAllEventsByUserId(      
+      req.app.get('db'),
+      parseInt(req.params.user_id)
+    ).then(events => {
+      const user = serializeUser(res.user)
+      res.json({user, events});
+    })
+    .catch(next)
+  })
+
 module.exports = usersRouter;
