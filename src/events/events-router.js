@@ -85,18 +85,6 @@ eventsRouter
     .catch(next);
   })
 
-  eventsRouter
-  .route('/')
-  .all(requireAuth)
-  .get((req, res, next) => {
-    const knexInstance = req.app.get('db')
-    EventsService.getAllEvents(knexInstance)
-    .then(events => { 
-      res.json(events.map(serializeEvent))
-    })
-    .catch(next)
-  })
-
 eventsRouter
   .route('/:event_id')
   .all(requireAuth)
@@ -179,8 +167,8 @@ eventsRouter
       .catch(next)
 })
   .get((req, res, next) => {
-    res.json(res.attendees);
+    const attendees = res.attendees;
+    res.json({attendees});
   })
-
 
 module.exports = eventsRouter
