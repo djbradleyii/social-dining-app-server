@@ -25,6 +25,23 @@ const EventsService = {
                 return res.rows
             })
     },
+    getAllAttendeesByEventId(knex, event_id){
+        /* Get all attendees for a specific event */
+        return knex.raw(`
+                    select users.id as user_id, events.id as event_id, events.title, users.fname as attendee
+                    from
+                    events
+                    inner join
+                    attendees
+                    on attendees.event_id = events.id
+                    inner join
+                    users
+                    on users.id = attendees.user_id
+                    where events.id = ${event_id}`)
+            .then(res => {
+                return res.rows
+            })
+    },
     deleteEvent(knex, id){
         return knex('events')
             .where({id})

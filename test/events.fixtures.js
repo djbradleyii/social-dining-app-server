@@ -257,8 +257,17 @@ function makeUsersArrayForEventTest(){
     ];
 }
 
+function seedUsers(users) {
+    const preppedUsers = users.map(user => ({
+      ...user,
+      password: bcrypt.hashSync(user.password, 12)
+      }))
+    return preppedUsers;
+}
+
 module.exports = {
     makeEventsArray,
     makeUsersArrayForEventTest,
-    makeAttendeesArrayForEventTest
+    makeAttendeesArrayForEventTest,
+    seedUsers
 }

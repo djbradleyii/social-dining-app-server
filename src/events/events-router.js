@@ -27,7 +27,7 @@ eventsRouter
   .all(requireAuth)
   .get((req, res, next) => {
     const knexInstance = req.app.get('db')
-    const { keyword } = req.query;
+    let { keyword } = req.query;
 
     keyword = xss(keyword);
     
@@ -79,7 +79,7 @@ eventsRouter
       AttendeesService.insertAttendee(req.app.get('db'), organizerAsAttended)
       .then((attendee) => {
         res.attendee = attendee
-        res.status(200).json({ event, attendee})
+        res.status(201).json({ event, attendee})
       })
     })
     .catch(next);
@@ -96,9 +96,6 @@ eventsRouter
     })
     .catch(next)
   })
-
-
-
 
 eventsRouter
   .route('/:event_id')
