@@ -12,7 +12,7 @@ function seedUsers(users) {
   return preppedUsers;
 }
 
-describe.only('Auth Endpoints', function() {
+describe('Auth Endpoints', function() {
   let db
   const testUsers = makeUsersArray();
   const testUser = testUsers[0]
