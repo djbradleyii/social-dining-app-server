@@ -1,5 +1,6 @@
 const express = require('express');
 const AttendeesService = require('./attendees-service');
+const EventsService = require('../events/events-service');
 const attendeesRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
@@ -27,17 +28,20 @@ attendeesRouter
         })
       }
     }  
-  
-     const newAttendee = {
+
+    const newAttendee = {
       user_id, 
       event_id
     }
-  
-  
+
     AttendeesService.insertAttendee(req.app.get('db'), newAttendee)
-    .then(attendeeId => {
-      res
-      .status(204).end();
+    .then(attendee => {
+      EventsService.getEventById(req.app.get('db'), event_id)
+      .then(( event ) => {
+        res.event = event;
+        res.attendee = attendee;
+        res.status(201).json({attendee, event});
+      })
     })
     .catch(next);
   })
