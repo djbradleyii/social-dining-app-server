@@ -112,13 +112,6 @@ usersRouter
     const {fname, lname, dob, email, password, marital_status, occupation, bio, gender} = req.body;
     const requiredFields = { lname, email, password, marital_status, bio, gender };
   
-/*     for (const [key, value] of Object.entries(requiredFields)) {
-      if (value == null) {
-        return res.status(400).json({
-          error: { message: `Missing '${key}' in request body` }
-        })
-      }
-    }  */
   if(password){
     const passwordError = UsersService.validatePassword(password);
     if(passwordError){
