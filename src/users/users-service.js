@@ -4,14 +4,34 @@ const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*
 
 const UsersService = {
     getAllUsers(knex){
-        return knex.select('*')
+        return knex.select(
+                'id',
+                'fname', 
+                'lname', 
+                'dob', 
+                'email', 
+                'marital_status', 
+                'occupation', 
+                'gender', 
+                'bio'
+            )
             .from('users')
     },
     insertUser(knex, newUser){
         return knex
             .insert(newUser)
             .into('users')
-            .returning('*')
+            .returning([
+                'id',
+                'fname', 
+                'lname', 
+                'dob', 
+                'email', 
+                'marital_status', 
+                'occupation', 
+                'gender', 
+                'bio'
+            ])
             .then(([user]) => {
                 return user
             })
@@ -19,7 +39,17 @@ const UsersService = {
     getUserById(knex, id){
         return knex
             .from('users')
-            .select('*')
+            .select(
+                'id',
+                'fname', 
+                'lname', 
+                'dob', 
+                'email', 
+                'marital_status', 
+                'occupation', 
+                'gender', 
+                'bio'
+            )
             .where('id',id)
             .first()
     },
