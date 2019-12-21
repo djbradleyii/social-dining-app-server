@@ -34,7 +34,6 @@ describe('Users Endpoints', function() {
       it(`responds with 401 and Missing bearer token`, () => {
         return supertest(app)
           .get('/api/users')
-          //.set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(401, { error: `Missing bearer token` })
       })
     })
@@ -55,7 +54,6 @@ describe('Users Endpoints', function() {
             expect(res.body[0].fname).to.eql(testUsers[0].fname)
             expect(res.body[0].lname).to.eql(testUsers[0].lname)
             expect(res.body[0].email).to.eql(testUsers[0].email)
-            expect(res.body[0].password).to.eql(testUsers[0].password)
             expect(res.body[0].marital_status).to.eql(testUsers[0].marital_status)
             expect(res.body[0].occupation).to.eql(testUsers[0].occupation)
             expect(res.body[0].gender).to.eql(testUsers[0].gender)
@@ -106,7 +104,6 @@ describe('Users Endpoints', function() {
             expect(res.body[0].fname).to.eql(expectedUser.fname)
             expect(res.body[0].lname).to.eql(expectedUser.lname)
             expect(res.body[0].email).to.eql(expectedUser.email)
-            expect(res.body[0].password).to.eql(expectedUser.password)
             expect(res.body[0].marital_status).to.eql(expectedUser.marital_status)
             expect(res.body[0].occupation).to.eql(expectedUser.occupation)
             expect(res.body[0].gender).to.eql(expectedUser.gender)
@@ -145,7 +142,6 @@ describe('Users Endpoints', function() {
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
             expect(res.body.email).to.eql(expectedUser.email)
-            expect(res.body.password).to.eql(expectedUser.password)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.occupation).to.eql(expectedUser.occupation)
             expect(res.body.gender).to.eql(expectedUser.gender)
@@ -196,7 +192,6 @@ describe('Users Endpoints', function() {
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
             expect(res.body.email).to.eql(expectedUser.email)
-            expect(res.body.password).to.eql(expectedUser.password)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.occupation).to.eql(expectedUser.occupation)
             expect(res.body.gender).to.eql(expectedUser.gender)
@@ -248,7 +243,6 @@ describe('Users Endpoints', function() {
             expect(res.body.user.fname).to.eql(expectedUser.fname)
             expect(res.body.user.lname).to.eql(expectedUser.lname)
             expect(res.body.user.email).to.eql(expectedUser.email)
-            expect(res.body.user.password).to.eql(expectedUser.password)
             expect(res.body.user.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.user.occupation).to.eql(expectedUser.occupation)
             expect(res.body.user.gender).to.eql(expectedUser.gender)
@@ -401,7 +395,7 @@ describe('Users Endpoints', function() {
           .expect(res => {
             expect(res.body).to.have.property('user_id')
           })
-          .expect(res =>
+           .expect(res =>
             db
               .from('users')
               .select('*')
@@ -507,7 +501,6 @@ describe('Users Endpoints', function() {
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)
                 expect(res.body.email).to.eql(expectedUser.email)
-                expect(res.body.password).to.eql(expectedUser.password)
                 expect(res.body.marital_status).to.eql(expectedUser.marital_status)
                 expect(res.body.occupation).to.eql(expectedUser.occupation)
                 expect(res.body.gender).to.eql(expectedUser.gender)
@@ -552,7 +545,6 @@ describe('Users Endpoints', function() {
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)
                 expect(res.body.email).to.eql(expectedUser.email)
-                expect(res.body.password).to.eql(expectedUser.password)
                 expect(res.body.marital_status).to.eql(expectedUser.marital_status)
                 expect(res.body.occupation).to.eql(expectedUser.occupation)
                 expect(res.body.gender).to.eql(expectedUser.gender)
