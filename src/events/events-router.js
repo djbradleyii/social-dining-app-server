@@ -46,9 +46,8 @@ eventsRouter
     }
   })
   .post(bodyParser, (req, res, next) => {
-    console.log('user=', req.user);
-    const { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
-    const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
+    const { title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
+    const requiredFields = { title, event_purpose, restaurant, address, date, time, description, singles_only };
     
     for (const [key, value] of Object.entries(requiredFields)) {
       if (value == null) {
@@ -73,13 +72,12 @@ eventsRouter
   
     EventsService.insertEvent(req.app.get('db'), newEvent)
     .then(event => {
-      const organizerAsAttended = {
+      const organizerAsAttendee = {
         user_id: event.organizer,
         event_id: event.id
       }
-      AttendeesService.insertAttendee(req.app.get('db'), organizerAsAttended)
+      AttendeesService.insertAttendee(req.app.get('db'), organizerAsAttendee)
       .then((attendee) => {
-        res.attendee = attendee
         res.status(201).json({ event, attendee})
       })
     })
