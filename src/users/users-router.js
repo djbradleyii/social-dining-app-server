@@ -77,7 +77,7 @@ usersRouter
               .then(user => {
                  res
                   .status(201)
-                  .json({user_id: user.id})
+                  .json({user})
               })
           })
       })
@@ -90,7 +90,7 @@ usersRouter
   .all((req, res, next) => {
     UsersService.getUserById(
       req.app.get('db'),
-      parseInt(req.params.user_id)
+      parseInt(req.user.id)
     )
       .then(user => {
         if (!user) {
@@ -98,36 +98,31 @@ usersRouter
             error: { message: `User doesn't exist` }
           })
         }
-        res.user = user; // save the user for the next middleware
+        //res.user = user; // save the user for the next middleware
         next();
       })
       .catch(next)
 })
   .get((req, res, next) => {
-    res.json(serializeUser(res.user));
+    res.json(serializeUser(req.user));
   })
   .patch(bodyParser, (req, res, next) => {
-    const { user_id } = req.params;
-    const {fname, lname, dob, email, password, marital_status, occupation, bio, gender} = req.body;
-    const requiredFields = { lname, email, password, marital_status, bio, gender };
-  
-  if(password){
-    const passwordError = UsersService.validatePassword(password);
-    if(passwordError){
-      return res.status(400).json({ error: passwordError})
-    }
-  }
-     
+    const user_id = req.user.id; //updated from params to user
+    const {fname, lname, dob, marital_status, occupation, bio, gender} = req.body;
+    const requiredFields = { lname, marital_status, bio, gender };
     
+
+
+
     const numberOfValues = Object.values(requiredFields).filter(Boolean).length
     if (numberOfValues === 0)
       return res.status(400).json({
         error: {
-          message: `Request body must contain either 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender'`
+          message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`
         }
       })
 
-    const updates = {fname, lname, dob, email, password, marital_status, occupation, bio, gender};
+    const updates = {fname, lname, dob, email: req.user.email, marital_status, occupation, bio, gender};
     UsersService.updateUserById(req.app.get('db'), user_id, updates)
     .then((numUsersAffected) => {
       res.status(204).end();
@@ -135,7 +130,8 @@ usersRouter
     .catch(next);
   })
   .delete((req, res, next) => {
-    UsersService.deleteUser(res.app.get('db'), req.params.user_id)
+    //updated req.params.user_id to req.user.id
+    UsersService.deleteUser(res.app.get('db'), req.user.id)
       .then( (count) => {
         if(count === 0){
           return res.status(404).json({
@@ -147,7 +143,7 @@ usersRouter
         .end();
       })
       .catch(next)
-      logger.info(`User with user_id ${req.params.user_id} deleted.`); 
+      logger.info(`User with id ${req.user.id} deleted.`); 
   })
 
   usersRouter
@@ -156,7 +152,7 @@ usersRouter
   .all((req, res, next) => {
     UsersService.getUserById(
       req.app.get('db'),
-      parseInt(req.params.user_id)
+      parseInt(req.user.id)
     )
       .then(user => {
         if (!user) {
@@ -164,7 +160,7 @@ usersRouter
             error: { message: `User doesn't exist` }
           })
         }
-        res.user = user; // save the user for the next middleware
+        //res.user = user; // save the user for the next middleware
         next();
       })
       .catch(next)
@@ -172,9 +168,9 @@ usersRouter
   .get((req, res, next) => {
     UsersService.getAllEventsByUserId(      
       req.app.get('db'),
-      parseInt(req.params.user_id)
+      parseInt(req.user.id)
     ).then(events => {
-      const user = serializeUser(res.user)
+      const user = serializeUser(req.user)
       res.json({user, events});
     })
     .catch(next)
