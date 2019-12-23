@@ -71,9 +71,9 @@ const UsersService = {
             .where({id: user_id})
             .delete()
     },
-    updateUserById(knex, user_id, userUpdates){
+    updateUserById(knex, id, userUpdates){
         return knex('users')
-            .where({ id: user_id })
+            .where({ id })
             .update(userUpdates)
     },
     validatePassword(password){
