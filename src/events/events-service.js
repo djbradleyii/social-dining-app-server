@@ -4,11 +4,11 @@ const EventsService = {
             .from('events')
             .orderBy('date', 'desc')
     },
-    getEventById(knex, id){
+    getEventById(knex, event_id){
         return knex
             .from('events')
             .select('*')
-            .where('id',id)
+            .where('id', event_id)
             .first()
     },
     getEventByKeyword(knex, keyword){
