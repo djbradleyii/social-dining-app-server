@@ -36,7 +36,7 @@ const UsersService = {
                 return user
             })
     },
-    getUserById(knex, id){
+    getUserById(knex, user_id){
         return knex
             .from('users')
             .select(
@@ -50,7 +50,7 @@ const UsersService = {
                 'gender', 
                 'bio'
             )
-            .where('id',id)
+            .where('id',user_id)
             .first()
     },
     getAllEventsByUserId(knex, user_id){
@@ -66,14 +66,14 @@ const UsersService = {
                 return res.rows
             })
     },
-    deleteUser(knex, id){
+    deleteUser(knex, user_id){
         return knex('users')
-            .where({id})
+            .where({user_id})
             .delete()
     },
-    updateUserById(knex, id, userUpdates){
+    updateUserById(knex, user_id, userUpdates){
         return knex('users')
-            .where({ id })
+            .where({ user_id })
             .update(userUpdates)
     },
     validatePassword(password){
