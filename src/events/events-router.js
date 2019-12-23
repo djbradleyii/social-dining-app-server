@@ -46,6 +46,7 @@ eventsRouter
     }
   })
   .post(bodyParser, (req, res, next) => {
+    console.log('user=', req.user);
     const { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only } = req.body;
     const requiredFields = { organizer, title, event_purpose, restaurant, address, date, time, description, singles_only };
     
@@ -58,7 +59,7 @@ eventsRouter
     }  
   
      const newEvent = {
-      organizer,
+      organizer: req.user.id,
       title,
       event_purpose,
       restaurant,
