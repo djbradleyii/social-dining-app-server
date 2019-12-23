@@ -235,7 +235,7 @@ describe('Users Endpoints', function() {
         const expectedEvent = testEvents.find(event => event.organizer === userId)
         return supertest(app)
           .get(`/api/users/${userId}/events`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[userId - 1]))
           .expect(200)
           .expect(res => {
             expect(res.body).to.have.property('user')
@@ -393,13 +393,19 @@ describe('Users Endpoints', function() {
           .send(newUser)
           .expect(201)
           .expect(res => {
-            expect(res.body).to.have.property('user_id')
+            expect(res.body.user.fname).to.have.eql(newUser.fname)
+            expect(res.body.user.lname).to.have.eql(newUser.lname)
+            expect(res.body.user.email).to.have.eql(newUser.email)
+            expect(res.body.user.marital_status).to.have.eql(newUser.marital_status)
+            expect(res.body.user.occupation).to.have.eql(newUser.occupation)
+            expect(res.body.user.gender).to.have.eql(newUser.gender)
+            expect(res.body.user.bio).to.have.eql(newUser.bio)
           })
-           .expect(res =>
-            db
+            .expect(res =>
+              db
               .from('users')
               .select('*')
-              .where({ id: res.body.user_id })
+              .where({ id: res.body.user.id })
               .first()
               .then(row => {
                 return bcrypt.compare(newUser.password, row.password)
@@ -434,19 +440,20 @@ describe('Users Endpoints', function() {
 
       it('responds with 204 and removes the user', () => {
         const idToRemove = 2
-        const expectedUsers = testUsers.filter(user => user.id !== idToRemove)
+        console.log(testUsers[idToRemove - 1]);
         return supertest(app)
           .delete(`/api/users/${idToRemove}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[idToRemove - 1]))
           .expect(204)
-          .then(res =>
+          .then(res => {
+            console.log(res.body);
             supertest(app)
-              .get(`/api/users`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
-              .expect(res => {
-                expect(res.body).to.have.lengthOf(2)
-              })
-          )
+             .get(`/api/users`)
+             .set('Authorization', makeAuthHeader(testUsers[idToRemove - 1]))
+             .expect(res => {
+               expect(res.body).to.have.lengthOf(2)
+             }) 
+          })
       })
     })
   })
@@ -474,10 +481,7 @@ describe('Users Endpoints', function() {
       it('responds with 204 and updates the user', () => {
         const idToUpdate = 2
         const updateUser = {
-          fname : "Update",
           lname : "User",
-          email : "uuser@gmail.com",
-          password : "Iupdatedme1!",
           dob : "03/02/1978",
           gender : "Male",
           occupation : "Marketing",
@@ -488,15 +492,16 @@ describe('Users Endpoints', function() {
           ...testUsers[idToUpdate - 1],
           ...updateUser
         }
+
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(expectedUser))
           .send(updateUser)
           .expect(204)
           .then(res =>
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .set('Authorization', makeAuthHeader(expectedUser))
               .then(res => {
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)
@@ -516,7 +521,7 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .send({ irrelevantField: 'foo' })
           .expect(400, {
-            error: { message: `Request body must contain either 'lname', 'dob', 'email', 'password', 'marital_status', 'bio', 'gender'`}
+            error: { message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`}
           })
       })
 
@@ -531,7 +536,7 @@ describe('Users Endpoints', function() {
         }
         return supertest(app)
           .patch(`/api/users/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
           .send({
             ...updateUser,
             fieldToIgnore: 'should not be in GET response'
@@ -540,7 +545,7 @@ describe('Users Endpoints', function() {
           .then(res =>
             supertest(app)
               .get(`/api/users/${idToUpdate}`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
               .then(res => {
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)

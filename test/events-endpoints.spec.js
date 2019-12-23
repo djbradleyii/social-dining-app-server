@@ -294,7 +294,7 @@ describe('Events Endpoints', function() {
     });
 
     context(`Event Validation`, () => {
-    const requiredFields = ['organizer', 'title', 'event_purpose', 'restaurant', 'address', 'date', 'time', 'description', 'singles_only']
+    const requiredFields = ['title', 'event_purpose', 'restaurant', 'address', 'date', 'time', 'description', 'singles_only']
 
     requiredFields.forEach(field => {
       const newEvent = {
