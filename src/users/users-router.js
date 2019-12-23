@@ -13,7 +13,6 @@ const serializeUser = user => ({
   lname: xss(user.lname),
   dob: user.dob,
   email: xss(user.email),
-  password: xss(user.password),
   marital_status: xss(user.marital_status),
   occupation: xss(user.occupation),
   gender: xss(user.gender),
