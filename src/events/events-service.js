@@ -37,12 +37,12 @@ const EventsService = {
     },
     deleteEvent(knex, event_id){
         return knex('events')
-            .where({event_id})
+            .where({id: event_id})
             .delete()
     },
     updateEventById(knex, event_id, eventUpdates){
         return knex('events')
-            .where({ event_id })
+            .where({ id: event_id })
             .update(eventUpdates)
     },
     insertEvent(knex, newEvent){
