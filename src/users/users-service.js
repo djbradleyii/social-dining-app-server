@@ -44,7 +44,6 @@ const UsersService = {
                 'fname', 
                 'lname', 
                 'dob', 
-                'email', 
                 'marital_status', 
                 'occupation', 
                 'gender', 
