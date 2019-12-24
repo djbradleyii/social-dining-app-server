@@ -46,6 +46,7 @@ attendeesRouter
   })
   .delete((req, res, next) => {
     let isRSVP;
+    let isOrganizer;
       EventsService.getAllAttendeesByEventId(res.app.get('db'), req.body.event_id)
       .then((attendees) => {
         if(attendees.length === 0){
@@ -54,7 +55,10 @@ attendeesRouter
       isRSVP = attendees.find((attendee) => {
         return attendee.user_id === req.user.id;
       })
-       if(isRSVP){
+      isOrganizer = attendees.find((attendee) => {
+        return attendee.organizer === req.user.id;
+      })
+       if(isRSVP && !isOrganizer){
         AttendeesService.deleteAttendee(res.app.get('db'), req.user.id, req.body.event_id)
         .then((count) => {
            if(count === 0){
