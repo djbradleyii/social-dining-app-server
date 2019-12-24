@@ -1,6 +1,7 @@
 const express = require('express');
 const AttendeesService = require('./attendees-service');
 const EventsService = require('../events/events-service');
+const UsersService = require('../users/users-service');
 const attendeesRouter = express.Router();
 const bodyParser = express.json();
 const logger = require('../logger');
@@ -18,8 +19,8 @@ attendeesRouter
     .catch(next)
   })
   .post(bodyParser, (req, res, next) => {
-    const { user_id, event_id } = req.body;
-    const requiredFields = { user_id, event_id };
+    const { event_id } = req.body;
+    const requiredFields = { event_id };
     
     for (const [key, value] of Object.entries(requiredFields)) {
       if (value == null) {
@@ -30,7 +31,7 @@ attendeesRouter
     }  
 
     const newAttendee = {
-      user_id, 
+      user_id: req.user.id, 
       event_id
     }
 
@@ -38,15 +39,40 @@ attendeesRouter
     .then(attendee => {
       EventsService.getEventById(req.app.get('db'), event_id)
       .then(( event ) => {
-        res.event = event;
-        res.attendee = attendee;
         res.status(201).json({attendee, event});
       })
     })
     .catch(next);
   })
+  .delete((req, res, next) => {
+    let isRSVP;
+      EventsService.getAllAttendeesByEventId(res.app.get('db'), req.body.event_id)
+      .then((attendees) => {
+        if(attendees.length === 0){
+          return res.status(401).json({ error: 'Unauthorized request' })
+        }
+      isRSVP = attendees.find((attendee) => {
+        return attendee.user_id === req.user.id;
+      })
+       if(isRSVP){
+        AttendeesService.deleteAttendee(res.app.get('db'), req.user.id, req.body.event_id)
+        .then((count) => {
+           if(count === 0){
+            return res.status(401).json({ error: 'Unauthorized request' })
+          } 
+          res
+          .status(204)
+          .end();
+        })
+        .catch(next)
+        logger.info(`Attendee with user_id ${req.user.id} has been removed from the event.`);
+      } else {
+        return res.status(401).json({ error: 'Unauthorized request' })
+      }
+    })
+  })
 
-attendeesRouter
+/* attendeesRouter
   .route('/:attendee_id')
   .all(requireAuth)
   .all((req, res, next) => {
@@ -60,20 +86,26 @@ attendeesRouter
           error: { message: `Attendee doesn't exist` }
         })
       }
-      res.attendee = attendee; // save the attendee for the next middleware
+      req.attendee = attendee; // save the attendee for the next middleware
       next();
     })
     .catch(next)
 })
   .get((req, res, next) => {
-    res.json(res.attendee);
+    AttendeesService.getAttendeeInfoById(req.app.get('db'), req.attendee.user_id)
+    .then(attendee => {
+      res.json({attendee})
+    })
   })
-  .delete((req, res, next) => {
+   .delete((req, res, next) => {
     if(!req.params.attendee_id){
       logger.error(`Attendee id is required.`);
       return res.status(400).send('Invalid data')
     }
-    AttendeesService.deleteAttendee(res.app.get('db'), req.params.attendee_id)
+
+    let isAttendee = req.body.user_id = req.user.id;
+    if(isAttendee){
+      AttendeesService.deleteAttendee(res.app.get('db'), req.user.id, req.body.event_id)
       .then( (count) => {
         if(count === 0){
           return res.status(404).json({
@@ -85,7 +117,8 @@ attendeesRouter
         .end();
       })
       .catch(next)
-      logger.info(`Attendee with attendee_id ${req.params.attendee_id} deleted.`);  
-  })
+      logger.info(`Attendee with attendee_id ${req.params.attendee_id} deleted.`);
+    }  
+  })  */
 
 module.exports = attendeesRouter
