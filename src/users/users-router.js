@@ -12,7 +12,6 @@ const serializeUser = user => ({
   fname: xss(user.fname),
   lname: xss(user.lname),
   dob: user.dob,
-  email: xss(user.email),
   marital_status: xss(user.marital_status),
   occupation: xss(user.occupation),
   gender: xss(user.gender),
@@ -83,22 +82,59 @@ usersRouter
       })
       .catch(next)
 })
+.patch(requireAuth, bodyParser, (req, res, next) => {
+  const user_id = req.user.id; //updated from params to user
+  const {fname, lname, dob, marital_status, occupation, bio, gender} = req.body;
+  const requiredFields = { lname, marital_status, bio, gender };
+  const numberOfValues = Object.values(requiredFields).filter(Boolean).length
+  if (numberOfValues === 0)
+    return res.status(400).json({
+      error: {
+        message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`
+      }
+    })
 
-usersRouter
+  const updates = {fname, lname, dob, email: req.user.email, marital_status, occupation, bio, gender};
+  UsersService.updateUserById(req.app.get('db'), user_id, updates)
+  .then((numUsersAffected) => {
+    res.status(204).end();
+  })
+  .catch(next);
+})
+.delete(requireAuth, (req, res, next) => {
+  //updated req.params.user_id to req.user.id
+  UsersService.deleteUser(res.app.get('db'), req.user.id)
+    .then( (count) => {
+      if(count === 0){
+        return res.status(404).json({
+          error: { message: `User does not exist`}
+        })
+      }
+      res
+      .status(204)
+      .end();
+    })
+    .catch(next)
+    logger.info(`User with id ${req.user.id} deleted.`);
+})
+
+ usersRouter
   .route('/:user_id')
   .all(requireAuth)
   .all((req, res, next) => {
     UsersService.getUserById(
       req.app.get('db'),
-      parseInt(req.user.id)
+      parseInt(req.params.user_id)
     )
       .then(user => {
         if (!user) {
           return res.status(404).json({
             error: { message: `User doesn't exist` }
           })
+        } else if(user.id !== req.user.id){
+          return res.status(401).json({ error: 'Unauthorized request' })
         }
-        //res.user = user; // save the user for the next middleware
+        req.user = user;
         next();
       })
       .catch(next)
@@ -106,48 +142,10 @@ usersRouter
   .get((req, res, next) => {
     res.json(serializeUser(req.user));
   })
-  .patch(bodyParser, (req, res, next) => {
-    const user_id = req.user.id; //updated from params to user
-    const {fname, lname, dob, marital_status, occupation, bio, gender} = req.body;
-    const requiredFields = { lname, marital_status, bio, gender };
-    
-
-
-
-    const numberOfValues = Object.values(requiredFields).filter(Boolean).length
-    if (numberOfValues === 0)
-      return res.status(400).json({
-        error: {
-          message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`
-        }
-      })
-
-    const updates = {fname, lname, dob, email: req.user.email, marital_status, occupation, bio, gender};
-    UsersService.updateUserById(req.app.get('db'), user_id, updates)
-    .then((numUsersAffected) => {
-      res.status(204).end();
-    })
-    .catch(next);
-  })
-  .delete((req, res, next) => {
-    //updated req.params.user_id to req.user.id
-    UsersService.deleteUser(res.app.get('db'), req.user.id)
-      .then( (count) => {
-        if(count === 0){
-          return res.status(404).json({
-            error: { message: `User does not exist`}
-          })
-        }
-        res
-        .status(204)
-        .end();
-      })
-      .catch(next)
-      logger.info(`User with id ${req.user.id} deleted.`); 
-  })
+  
 
   usersRouter
-  .route('/:user_id/events')
+  .route('/all/events')
   .all(requireAuth)
   .all((req, res, next) => {
     UsersService.getUserById(
@@ -160,7 +158,6 @@ usersRouter
             error: { message: `User doesn't exist` }
           })
         }
-        //res.user = user; // save the user for the next middleware
         next();
       })
       .catch(next)
@@ -171,6 +168,7 @@ usersRouter
       parseInt(req.user.id)
     ).then(events => {
       const user = serializeUser(req.user)
+      user.email = req.user.email;
       res.json({user, events});
     })
     .catch(next)
