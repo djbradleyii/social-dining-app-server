@@ -23,7 +23,7 @@ const AttendeesService = {
             .where('id', attendee_id)
             .first()
     },
-    getAttendeeInfoById(knex, user_id){
+/*     getAttendeeInfoById(knex, user_id){
         return knex.raw(`
         select distinct users.fname as first_name, users.lname as last_name, users.marital_status, users.occupation, users.bio
         from 
@@ -35,7 +35,7 @@ const AttendeesService = {
             .then(res => {
                 return res.rows[0]
             })
-    },
+    }, */
     deleteAttendee(knex, user_id, event_id){
         return knex('attendees')
         .where({user_id, event_id})
