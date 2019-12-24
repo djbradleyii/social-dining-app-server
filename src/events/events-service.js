@@ -21,7 +21,7 @@ const EventsService = {
     getAllAttendeesByEventId(knex, event_id){
         /* Get all attendees for a specific event */
         return knex.raw(`
-                    select users.id as user_id, events.id as event_id, events.title, users.fname as attendee
+                    select users.id as user_id, events.id as event_id, events.organizer, users.fname as first_name, users.lname as last_name, users.marital_status, users.occupation, users.bio
                     from
                     events
                     inner join
