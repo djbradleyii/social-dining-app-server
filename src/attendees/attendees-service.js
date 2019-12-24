@@ -23,9 +23,22 @@ const AttendeesService = {
             .where('id', attendee_id)
             .first()
     },
-    deleteAttendee(knex, attendee_id ){
+    getAttendeeInfoById(knex, user_id){
+        return knex.raw(`
+        select distinct users.fname as first_name, users.lname as last_name, users.marital_status, users.occupation, users.bio
+        from 
+        users
+        join
+        attendees
+        on users.id = attendees.user_id
+        where attendees.user_id = ${user_id}`)
+            .then(res => {
+                return res.rows[0]
+            })
+    },
+    deleteAttendee(knex, user_id, event_id){
         return knex('attendees')
-        .where('id', attendee_id)
+        .where({user_id, event_id})
         .delete()
     },
     insertAttendee(knex, newAttendee){
