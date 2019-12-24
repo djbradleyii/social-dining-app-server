@@ -98,16 +98,32 @@ eventsRouter
             error: { message: `Event doesn't exist` }
           })
         }
-        res.event = event; // save the event for the next middleware
+        req.event = event; // save the event for the next middleware
         next();
       })
       .catch(next)
 })
   .get((req, res, next) => {
-    res.json(serializeEvent(res.event));
+    EventsService.getAllAttendeesByEventId(
+      req.app.get('db'),
+      parseInt(req.params.event_id)
+    )
+      .then(attendees => {
+        if (attendees.length === 0) {
+          return res.status(404).json({
+            error: { message: `Event doesn't exist` }
+          })
+        }
+        req.attendees = attendees; // save the event for the next middleware
+        event = serializeEvent(req.event);
+        res.json({event, attendees });
+        next();
+      })
+      .catch(next)
   })
   .patch(bodyParser, (req, res, next) => {
-    const { event_id } = req.params; //
+
+    const { id } = req.event; 
     const {title, description} = req.body;
     const eventToUpdate = { title, description };
   
@@ -118,20 +134,29 @@ eventsRouter
           message: `Request body must contain either 'title' or 'description'`
         }
       })
+    
+    const isUsersEvent = req.user.id === req.event.organizer;
+    if(isUsersEvent){
+      EventsService.updateEventById(req.app.get('db'), id, eventToUpdate)
+      .then((rowsAffected) => {
+        res.status(204).end();
+      })
+      .catch(next);
+    } else {
+      return res.status(401).json({ error: 'Unauthorized request' })
+    }
 
-
-    EventsService.updateEventById(req.app.get('db'), event_id, eventToUpdate)
-    .then((rowsAffected) => {
-      res.status(204).end();
-    })
-    .catch(next);
   })
   .delete((req, res, next) => {
+    const { id } = req.event; 
     if(!req.params.event_id){
       logger.error(`Event id is required.`);
       return res.status(400).send('Invalid data')
     }
-    EventsService.deleteEvent(res.app.get('db'), req.params.event_id)
+
+    const isUsersEvent = req.user.id === req.event.organizer;
+    if(isUsersEvent){
+    EventsService.deleteEvent(res.app.get('db'), id)
       .then( (count) => {
         if(count === 0){
           return res.status(404).json({
@@ -143,31 +168,10 @@ eventsRouter
         .end();
       })
       .catch(next)
-      logger.info(`Event with event_id ${req.params.event_id} deleted.`);  
-  })
-
-  eventsRouter
-  .route('/:event_id/attendees')
-  .all(requireAuth)
-  .all((req, res, next) => {
-    EventsService.getAllAttendeesByEventId(
-      req.app.get('db'),
-      parseInt(req.params.event_id)
-    )
-      .then(attendees => {
-        if (attendees.length === 0) {
-          return res.status(404).json({
-            error: { message: `Event doesn't exist` }
-          })
-        }
-        res.attendees = attendees; // save the event for the next middleware
-        next();
-      })
-      .catch(next)
-})
-  .get((req, res, next) => {
-    const attendees = res.attendees;
-    res.json({attendees});
+  } else {
+    return res.status(401).json({ error: 'Unauthorized request' })
+  }
+      logger.info(`Event with event_id ${id} deleted.`);  
   })
 
 module.exports = eventsRouter
