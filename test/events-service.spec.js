@@ -48,9 +48,8 @@ describe(`Events service object`, function() {
             return EventsService.getAllAttendeesByEventId(db, event_id)
                 .then(res => {
                     expect(res).to.have.lengthOf(2)
-                    expect(res[0].title).to.eql(testEvent.title)
-                    expect(res[0].attendee).to.eql(testUsers[testAttendee[0].user_id - 1].fname)
-                    expect(res[1].attendee).to.eql(testUsers[testAttendee[1].user_id - 1].fname)
+                    expect(res[0].attendee).to.eql(testUsers[testAttendee[0].user_id - 1].first_name)
+                    expect(res[1].attendee).to.eql(testUsers[testAttendee[1].user_id - 1].first_name)
                   })
         })
 

@@ -51,9 +51,9 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
+            console.log(res.body);
             expect(res.body[0].fname).to.eql(testUsers[0].fname)
             expect(res.body[0].lname).to.eql(testUsers[0].lname)
-            expect(res.body[0].email).to.eql(testUsers[0].email)
             expect(res.body[0].marital_status).to.eql(testUsers[0].marital_status)
             expect(res.body[0].occupation).to.eql(testUsers[0].occupation)
             expect(res.body[0].gender).to.eql(testUsers[0].gender)
@@ -98,12 +98,11 @@ describe('Users Endpoints', function() {
       it('removes XSS attack content', () => {
         return supertest(app)
           .get(`/api/users`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(expectedUser))
           .expect(200)
           .expect(res => {
             expect(res.body[0].fname).to.eql(expectedUser.fname)
             expect(res.body[0].lname).to.eql(expectedUser.lname)
-            expect(res.body[0].email).to.eql(expectedUser.email)
             expect(res.body[0].marital_status).to.eql(expectedUser.marital_status)
             expect(res.body[0].occupation).to.eql(expectedUser.occupation)
             expect(res.body[0].gender).to.eql(expectedUser.gender)
@@ -139,9 +138,9 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(expectedUser))
           .expect(200)
           .expect(res => {
+            console.log(res.body);
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
-            expect(res.body.email).to.eql(expectedUser.email)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.occupation).to.eql(expectedUser.occupation)
             expect(res.body.gender).to.eql(expectedUser.gender)
@@ -189,9 +188,9 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
+            console.log(res.body);
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
-            expect(res.body.email).to.eql(expectedUser.email)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.occupation).to.eql(expectedUser.occupation)
             expect(res.body.gender).to.eql(expectedUser.gender)
@@ -201,12 +200,12 @@ describe('Users Endpoints', function() {
     })
   })
 
-  describe(`GET /api/users/:user_id/events`, () => {
+  describe(`GET /api/users/all/events`, () => {
     context(`Given no users`, () => {
       it(`responds with 404`, () => {
         const userId = 123456
         return supertest(app)
-          .get(`/api/users/${userId}/events`)
+          .get(`/api/users/all/events`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(401, { error: 'Unauthorized request' })
       })
@@ -234,7 +233,7 @@ describe('Users Endpoints', function() {
         const expectedUser = testUsers[userId - 1];
         const expectedEvent = testEvents.find(event => event.organizer === userId)
         return supertest(app)
-          .get(`/api/users/${userId}/events`)
+          .get(`/api/users/all/events`)
           .set('Authorization', makeAuthHeader(testUsers[userId - 1]))
           .expect(200)
           .expect(res => {
@@ -418,12 +417,12 @@ describe('Users Endpoints', function() {
     })
   })
 
-  describe(`DELETE /api/users/:user_id`, () => {
+  describe(`DELETE /api/users`, () => {
     context(`Given no users`, () => {
       it(`responds with 404`, () => {
         const userId = 123456
         return supertest(app)
-          .delete(`/api/users/${userId}`)
+          .delete(`/api/users`)
           .set('Authorization', makeAuthHeader(testUsers[1]))
           .expect(401, { error: 'Unauthorized request' })
       })
@@ -440,9 +439,8 @@ describe('Users Endpoints', function() {
 
       it('responds with 204 and removes the user', () => {
         const idToRemove = 2
-        console.log(testUsers[idToRemove - 1]);
         return supertest(app)
-          .delete(`/api/users/${idToRemove}`)
+          .delete(`/api/users`)
           .set('Authorization', makeAuthHeader(testUsers[idToRemove - 1]))
           .expect(204)
           .then(res => {
@@ -458,12 +456,12 @@ describe('Users Endpoints', function() {
     })
   })
 
-  describe(`PATCH /api/users/:user_id`, () => {
+  describe(`PATCH /api/users`, () => {
     context(`Given no users`, () => {
       it(`responds with 404`, () => {
         const userId = 123456
         return supertest(app)
-          .delete(`/api/users/${userId}`)
+          .delete(`/api/users`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(401, { error: 'Unauthorized request' })
       })
@@ -492,24 +490,23 @@ describe('Users Endpoints', function() {
           ...testUsers[idToUpdate - 1],
           ...updateUser
         }
-
         return supertest(app)
-          .patch(`/api/users/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(expectedUser))
+          .patch(`/api/users`)
+          .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
           .send(updateUser)
           .expect(204)
           .then(res =>
             supertest(app)
-              .get(`/api/users/${idToUpdate}`)
+              .get(`/api/users`)
               .set('Authorization', makeAuthHeader(expectedUser))
               .then(res => {
-                expect(res.body.fname).to.eql(expectedUser.fname)
-                expect(res.body.lname).to.eql(expectedUser.lname)
-                expect(res.body.email).to.eql(expectedUser.email)
-                expect(res.body.marital_status).to.eql(expectedUser.marital_status)
-                expect(res.body.occupation).to.eql(expectedUser.occupation)
-                expect(res.body.gender).to.eql(expectedUser.gender)
-                expect(res.body.bio).to.eql(expectedUser.bio)
+                let actual = res.body.find((user) => user.id === idToUpdate)
+                expect(actual.fname).to.eql(expectedUser.fname)
+                expect(actual.lname).to.eql(expectedUser.lname)
+                expect(actual.marital_status).to.eql(expectedUser.marital_status)
+                expect(actual.occupation).to.eql(expectedUser.occupation)
+                expect(actual.gender).to.eql(expectedUser.gender)
+                expect(actual.bio).to.eql(expectedUser.bio)
               })   
           )
       })
@@ -517,7 +514,7 @@ describe('Users Endpoints', function() {
       it(`responds with 400 when no required fields supplied`, () => {
         const idToUpdate = 2
         return supertest(app)
-          .patch(`/api/users/${idToUpdate}`)
+          .patch(`/api/users`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .send({ irrelevantField: 'foo' })
           .expect(400, {
@@ -535,7 +532,7 @@ describe('Users Endpoints', function() {
           ...updateUser
         }
         return supertest(app)
-          .patch(`/api/users/${idToUpdate}`)
+          .patch(`/api/users`)
           .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
           .send({
             ...updateUser,
@@ -547,9 +544,9 @@ describe('Users Endpoints', function() {
               .get(`/api/users/${idToUpdate}`)
               .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
               .then(res => {
+                console.log(res.body);
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)
-                expect(res.body.email).to.eql(expectedUser.email)
                 expect(res.body.marital_status).to.eql(expectedUser.marital_status)
                 expect(res.body.occupation).to.eql(expectedUser.occupation)
                 expect(res.body.gender).to.eql(expectedUser.gender)

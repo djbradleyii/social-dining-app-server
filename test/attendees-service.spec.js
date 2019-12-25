@@ -58,9 +58,10 @@ describe(`Attendees service object`, function() {
                   })
         })
 
-        it(`deleteAttendee() delete an attendee from an event by attendee_id`, () => {
-            const attendee_id = 2;
-            return AttendeesService.deleteAttendee(db, attendee_id)
+        it(`deleteAttendee() delete an attendee from an event by user id and event id`, () => {
+            const user_id = 3;
+            const event_id = 1; 
+            return AttendeesService.deleteAttendee(db, user_id, event_id)
                 .then(() => AttendeesService.getAllAttendees(db)
                 .then(res => {
                     expect(res).to.be.an('array')

@@ -71,7 +71,7 @@ describe('Attendees Endpoints', function() {
     })
 })
 
-  describe(`GET /api/attendees/:attendee_id`, () => {
+/*   describe(`GET /api/attendees/:attendee_id`, () => {
     context(`Given no attendees`, () => {
       it(`responds with 401`, () => {
         const attendeeId = 123456
@@ -113,7 +113,7 @@ describe('Attendees Endpoints', function() {
           })
       })
     })
-  })
+  }) */
 
 
   describe(`POST /api/attendees`, () => {
@@ -140,7 +140,7 @@ describe('Attendees Endpoints', function() {
     });
 
     context(`Attendee Validation`, () => {
-    const requiredFields = ['user_id', 'event_id']
+    const requiredFields = ['event_id']
 
     requiredFields.forEach(field => {
       const newAttendee = {
@@ -190,12 +190,12 @@ describe('Attendees Endpoints', function() {
     })
   })
 
-  describe(`DELETE /api/attendees/:attendee_id`, () => {
+  describe(`DELETE /api/attendees`, () => {
     context(`Given no attendees`, () => {
       it(`responds with 401`, () => {
         const attendeeId = 123456
         return supertest(app)
-          .delete(`/api/attendees/${attendeeId}`)
+          .delete(`/api/attendees`)
           .set('Authorization', makeAuthHeader(testUsers[1]))
           .expect(401, { error: 'Unauthorized request' })
       })
@@ -220,16 +220,17 @@ describe('Attendees Endpoints', function() {
     });
 
       it('responds with 204 and removes the attendee', () => {
-        const idToRemove = 6;
+        const idToRemove = 11;
         const expectedAttendees = testAttendees.filter(attendee => attendee.id !== idToRemove)
         return supertest(app)
-          .delete(`/api/attendees/${idToRemove}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .delete(`/api/attendees`)
+          .set('Authorization', makeAuthHeader(testUsers[2]))
+          .send({event_id: 1})
           .expect(204)
           .then(res =>
             supertest(app)
               .get(`/api/attendees`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .set('Authorization', makeAuthHeader(testUsers[2]))
               .expect(res => {
                 expect(res.body[idToRemove - 1].user_id).to.eql(expectedAttendees[idToRemove].user_id)
                 expect(res.body[idToRemove - 1].event_id).to.eql(expectedAttendees[idToRemove].event_id)

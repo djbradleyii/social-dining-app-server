@@ -191,26 +191,14 @@ describe('Events Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-            expect(res.body.organizer).to.eql(expectedEvent.organizer)
-            expect(res.body.title).to.eql(expectedEvent.title)
-            expect(res.body.event_purpose).to.eql(expectedEvent.event_purpose)
-            expect(res.body.restaurant).to.eql(expectedEvent.restaurant)
-            expect(res.body.address).to.eql(expectedEvent.address)
-            expect(res.body.description).to.eql(expectedEvent.description)
-            expect(res.body.singles_only).to.eql(expectedEvent.singles_only)
-          })
-      })
-
-      it('responds with 200 and a list of attendees', () => {
-        const eventId = 10;
-        return supertest(app)
-          .get(`/api/events/${eventId}/attendees`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
-          .expect(200)
-          .expect(res => {
-              expect(res.body.attendees).to.have.a.lengthOf(2)
-              expect(res.body.attendees[0]).to.have.property('user_id')
-              expect(res.body.attendees[0]).to.have.property('event_id')
+            expect(res.body.event.organizer).to.eql(expectedEvent.organizer)
+            expect(res.body.event.title).to.eql(expectedEvent.title)
+            expect(res.body.event.event_purpose).to.eql(expectedEvent.event_purpose)
+            expect(res.body.event.restaurant).to.eql(expectedEvent.restaurant)
+            expect(res.body.event.address).to.eql(expectedEvent.address)
+            expect(res.body.event.description).to.eql(expectedEvent.description)
+            expect(res.body.event.singles_only).to.eql(expectedEvent.singles_only)
+            expect(res.body).to.have.property('attendees')
           })
       })
     })
@@ -253,17 +241,17 @@ describe('Events Endpoints', function() {
 
       it('removes XSS attack content', () => {
         return supertest(app)
-          .get(`/api/events/1`)
+          .get(`/api/events`)
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-            expect(res.body.organizer).to.eql(expectedEvent.organizer)
-            expect(res.body.title).to.eql(expectedEvent.title)
-            expect(res.body.event_purpose).to.eql(expectedEvent.event_purpose)
-            expect(res.body.restaurant).to.eql(expectedEvent.restaurant)
-            expect(res.body.address).to.eql(expectedEvent.address)
-            expect(res.body.description).to.eql(expectedEvent.description)
-            expect(res.body.singles_only).to.eql(expectedEvent.singles_only)
+            expect(res.body[0].organizer).to.eql(expectedEvent.organizer)
+            expect(res.body[0].title).to.eql(expectedEvent.title)
+            expect(res.body[0].event_purpose).to.eql(expectedEvent.event_purpose)
+            expect(res.body[0].restaurant).to.eql(expectedEvent.restaurant)
+            expect(res.body[0].address).to.eql(expectedEvent.address)
+            expect(res.body[0].description).to.eql(expectedEvent.description)
+            expect(res.body[0].singles_only).to.eql(expectedEvent.singles_only)
           })
       })
     })
@@ -381,25 +369,10 @@ describe('Events Endpoints', function() {
 
       it('responds with 204 and removes the event', () => {
         const idToRemove = 2
-        const expectedEvents = testEvents.filter(event => event.id !== idToRemove)
         return supertest(app)
           .delete(`/api/events/${idToRemove}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[1]))
           .expect(204)
-          .then(res =>
-            supertest(app)
-              .get(`/api/events`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
-              .expect(res => {
-                expect(res.body[4].organizer).to.eql(expectedEvents[5].organizer)
-                expect(res.body[4].title).to.eql(expectedEvents[5].title)
-                expect(res.body[4].event_purpose).to.eql(expectedEvents[5].event_purpose)
-                expect(res.body[4].restaurant).to.eql(expectedEvents[5].restaurant)
-                expect(res.body[4].address).to.eql(expectedEvents[5].address)
-                expect(res.body[4].description).to.eql(expectedEvents[5].description)
-                expect(res.body[4].singles_only).to.eql(expectedEvents[5].singles_only)
-              })
-          )
       })
     })
   })
@@ -427,6 +400,11 @@ describe('Events Endpoints', function() {
                 .into('events')
                 .insert(testEvents)
             })
+            .then(() => {
+              return db
+                  .into('attendees')
+                  .insert(testAttendees)
+          })
     });
 
       it('responds with 204 and updates the event', () => {
@@ -441,16 +419,17 @@ describe('Events Endpoints', function() {
         }
         return supertest(app)
           .patch(`/api/events/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[1]))
           .send(updateEvent)
           .expect(204)
           .then(res =>
             supertest(app)
               .get(`/api/events/${idToUpdate}`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .set('Authorization', makeAuthHeader(testUsers[1]))
               .then(res => {
-                expect(res.body.title).to.eql(expectedEvent.title)
-                expect(res.body.description).to.eql(expectedEvent.description)
+                console.log(res.body);
+                expect(res.body.event.title).to.eql(expectedEvent.title)
+                expect(res.body.event.description).to.eql(expectedEvent.description)
               })   
           )
       })
@@ -475,9 +454,10 @@ describe('Events Endpoints', function() {
           ...testEvents[idToUpdate - 1],
           ...updateEvent
         }
+
         return supertest(app)
           .patch(`/api/events/${idToUpdate}`)
-          .set('Authorization', makeAuthHeader(testUsers[0]))
+          .set('Authorization', makeAuthHeader(testUsers[1]))
           .send({
             ...updateEvent,
             fieldToIgnore: 'should not be in GET response'
@@ -486,9 +466,9 @@ describe('Events Endpoints', function() {
           .then(res =>
             supertest(app)
               .get(`/api/events/${idToUpdate}`)
-              .set('Authorization', makeAuthHeader(testUsers[0]))
+              .set('Authorization', makeAuthHeader(testUsers[1]))
               .then(res => {
-                expect(res.body.title).to.eql(expectedEvent.title)
+                expect(res.body.event.title).to.eql(expectedEvent.title)
               })
           )
       })

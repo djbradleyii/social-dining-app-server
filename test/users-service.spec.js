@@ -61,7 +61,6 @@ describe(`Users service object`, function() {
                 .then(res => {
                     expect(res.fname).to.eql(thirdTestUser.fname)
                     expect(res.lname).to.eql(thirdTestUser.lname)
-                    expect(res.email).to.eql(thirdTestUser.email)
                     expect(res.marital_status).to.eql(thirdTestUser.marital_status)
                     expect(res.occupation).to.eql(thirdTestUser.occupation)
                     expect(res.gender).to.eql(thirdTestUser.gender)
@@ -110,9 +109,9 @@ describe(`Users service object`, function() {
             return UsersService.updateUserById(db, idOfUserToUpdate, newUserInfo)
             .then(() => UsersService.getUserById(db, idOfUserToUpdate))
             .then(res => {
+                console.log(res);
                 expect(res.fname).to.eql(testUsers[idOfUserToUpdate - 1].fname)
                 expect(res.lname).to.eql(testUsers[idOfUserToUpdate - 1].lname)
-                expect(res.email).to.eql(testUsers[idOfUserToUpdate - 1].email)
                 expect(res.marital_status).to.eql(testUsers[idOfUserToUpdate - 1].marital_status)
                 expect(res.occupation).to.eql(testUsers[idOfUserToUpdate - 1].occupation)
                 expect(res.gender).to.eql(testUsers[idOfUserToUpdate - 1].gender)
