@@ -109,7 +109,6 @@ describe(`Users service object`, function() {
             return UsersService.updateUserById(db, idOfUserToUpdate, newUserInfo)
             .then(() => UsersService.getUserById(db, idOfUserToUpdate))
             .then(res => {
-                console.log(res);
                 expect(res.fname).to.eql(testUsers[idOfUserToUpdate - 1].fname)
                 expect(res.lname).to.eql(testUsers[idOfUserToUpdate - 1].lname)
                 expect(res.marital_status).to.eql(testUsers[idOfUserToUpdate - 1].marital_status)

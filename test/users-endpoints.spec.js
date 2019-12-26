@@ -51,7 +51,6 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-            console.log(res.body);
             expect(res.body[0].fname).to.eql(testUsers[0].fname)
             expect(res.body[0].lname).to.eql(testUsers[0].lname)
             expect(res.body[0].marital_status).to.eql(testUsers[0].marital_status)
@@ -138,7 +137,6 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(expectedUser))
           .expect(200)
           .expect(res => {
-            console.log(res.body);
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
@@ -188,13 +186,12 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .expect(200)
           .expect(res => {
-            console.log(res.body);
             expect(res.body.fname).to.eql(expectedUser.fname)
             expect(res.body.lname).to.eql(expectedUser.lname)
             expect(res.body.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.occupation).to.eql(expectedUser.occupation)
             expect(res.body.gender).to.eql(expectedUser.gender)
-            expect(res.body.bio).to.eql(expectedUser.bio) 
+            expect(res.body.bio).to.eql(expectedUser.bio)
           })
       })
     })
@@ -255,7 +252,6 @@ describe('Users Endpoints', function() {
     })
   })
 
-  /* Tests for Other users HTTP METHODS below */
 
   describe(`POST /api/users`, () => {
     context(`User Validation`, () => {
@@ -444,7 +440,6 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[idToRemove - 1]))
           .expect(204)
           .then(res => {
-            console.log(res.body);
             supertest(app)
              .get(`/api/users`)
              .set('Authorization', makeAuthHeader(testUsers[idToRemove - 1]))
@@ -544,7 +539,6 @@ describe('Users Endpoints', function() {
               .get(`/api/users/${idToUpdate}`)
               .set('Authorization', makeAuthHeader(testUsers[idToUpdate - 1]))
               .then(res => {
-                console.log(res.body);
                 expect(res.body.fname).to.eql(expectedUser.fname)
                 expect(res.body.lname).to.eql(expectedUser.lname)
                 expect(res.body.marital_status).to.eql(expectedUser.marital_status)

@@ -427,7 +427,6 @@ describe('Events Endpoints', function() {
               .get(`/api/events/${idToUpdate}`)
               .set('Authorization', makeAuthHeader(testUsers[1]))
               .then(res => {
-                console.log(res.body);
                 expect(res.body.event.title).to.eql(expectedEvent.title)
                 expect(res.body.event.description).to.eql(expectedEvent.description)
               })   
