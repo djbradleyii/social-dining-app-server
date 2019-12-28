@@ -1,19 +1,25 @@
 const EventsService = {
     getAllEvents(knex){
-        return knex.select('*')
+        return knex.select('events.id', 'events.organizer', 'events.title', 'events.event_purpose', 'events.restaurant', 'events.address', 'events.date', 'events.time', 'events.description', 'events.singles_only', 'users.fname')
             .from('events')
+            .join('users', 'events.organizer', '=', 'users.id')
             .orderBy('date', 'desc')
     },
     getEventById(knex, event_id){
         return knex
+            .select('events.id', 'events.organizer', 'events.title', 'events.event_purpose', 'events.restaurant', 'events.address', 'events.date', 'events.time', 'events.description', 'events.singles_only', 'users.fname')
             .from('events')
-            .select('*')
-            .where('id', event_id)
+            .join('users', 'events.organizer', '=', 'users.id')
+            .where('events.id', event_id)
             .first()
     },
     getEventByKeyword(knex, keyword){
         /* Get event by keyword search; Used by Search Component on Client */
-        return knex.raw(`select * from events where (title || address || restaurant || event_purpose || description) like '%${keyword}%'`)
+        return knex.raw(`select events.id, events.organizer, events.title, events.event_purpose, events.restaurant, events.address, events.date, events.time, events.description, events.singles_only, users.fname
+        from events
+        join
+        users on events.organizer = users.id
+        where (title || address || restaurant || event_purpose || description) like '%${keyword}%'`)
             .then(res => {
                 return res.rows
             })
