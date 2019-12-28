@@ -2,7 +2,7 @@ const knex = require('knex');
 const app = require('../src/app');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { makeUsersArray, makeEventsArrayForUsersService, makeAttendeesArrayForUsersTest, seedUsers } = require('./users.fixtures');
+const { makeUsersArray, makeEventsArrayForUsersService, makeAttendeesArrayForUsersTest, seedUsers, encryptEmail } = require('./users.fixtures');
 
 describe('Users Endpoints', function() {
   let db
@@ -238,7 +238,7 @@ describe('Users Endpoints', function() {
             expect(res.body).to.have.property('events')
             expect(res.body.user.fname).to.eql(expectedUser.fname)
             expect(res.body.user.lname).to.eql(expectedUser.lname)
-            expect(res.body.user.email).to.eql(expectedUser.email)
+            expect(res.body.user.email).to.eql(encryptEmail(expectedUser.email))
             expect(res.body.user.marital_status).to.eql(expectedUser.marital_status)
             expect(res.body.user.occupation).to.eql(expectedUser.occupation)
             expect(res.body.user.gender).to.eql(expectedUser.gender)
@@ -513,7 +513,7 @@ describe('Users Endpoints', function() {
           .set('Authorization', makeAuthHeader(testUsers[0]))
           .send({ irrelevantField: 'foo' })
           .expect(400, {
-            error: { message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`}
+            error: { message: `Request body must contain either 'fname', 'lname', 'marital_status', 'occupation', 'bio', 'gender'`}
           })
       })
 

@@ -196,6 +196,14 @@ function makeAttendeesArrayForUsersTest(){
     ];
 }
 
+const encryptEmail = (email) => {
+    let indexOfAt = email.indexOf('@');
+    let sliced = email.slice(1,indexOfAt-1);
+    let regx = new RegExp(sliced,'gi');
+    let hiddenEmail = email.replace(regx,'*'.repeat(sliced.length));
+    return hiddenEmail;
+  } 
+
 function seedUsers(users) {
     const preppedUsers = users.map(user => ({
       ...user,
@@ -208,5 +216,6 @@ module.exports = {
     makeUsersArray,
     makeEventsArrayForUsersService,
     makeAttendeesArrayForUsersTest,
-    seedUsers
+    seedUsers,
+    encryptEmail
 }
