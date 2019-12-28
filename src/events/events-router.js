@@ -18,6 +18,7 @@ const serializeEvent = event => ({
   time: event.time,
   description: xss(event.description),
   singles_only: event.singles_only,
+  organizer_name: event.fname,
   date_created: new Date(event.date_created)
   })
 
