@@ -19,6 +19,14 @@ const serializeUser = user => ({
   date_created: new Date(user.date_created)
 })
 
+const encryptEmail = (email) => {
+  let indexOfAt = email.indexOf('@');
+  let sliced = email.slice(1,indexOfAt-1);
+  let regx = new RegExp(sliced,'gi');
+  let hiddenEmail = email.replace(regx,'*'.repeat(sliced.length));
+  return hiddenEmail;
+} 
+
 usersRouter
   .route('/')
   .get(requireAuth, (req, res, next) => {
@@ -84,17 +92,17 @@ usersRouter
 })
 .patch(requireAuth, bodyParser, (req, res, next) => {
   const user_id = req.user.id; //updated from params to user
-  const {fname, lname, dob, marital_status, occupation, bio, gender} = req.body;
-  const requiredFields = { lname, marital_status, bio, gender };
+  const {fname, lname, marital_status, occupation, bio, gender} = req.body;
+  const requiredFields = { fname, lname, marital_status, occupation, bio, gender };
   const numberOfValues = Object.values(requiredFields).filter(Boolean).length
   if (numberOfValues === 0)
     return res.status(400).json({
       error: {
-        message: `Request body must contain either 'lname', 'dob', 'password', 'marital_status', 'bio', 'gender'`
+        message: `Request body must contain either 'fname', 'lname', 'marital_status', 'occupation', 'bio', 'gender'`
       }
     })
 
-  const updates = {fname, lname, dob, email: req.user.email, marital_status, occupation, bio, gender};
+  const updates = {fname, lname, marital_status, occupation, bio, gender};
   UsersService.updateUserById(req.app.get('db'), user_id, updates)
   .then((numUsersAffected) => {
     res.status(204).end();
@@ -131,9 +139,7 @@ usersRouter
           return res.status(404).json({
             error: { message: `User doesn't exist` }
           })
-        } else if(user.id !== req.user.id){
-          return res.status(401).json({ error: 'Unauthorized request' })
-        }
+        } 
         req.user = user;
         next();
       })
@@ -168,7 +174,8 @@ usersRouter
       parseInt(req.user.id)
     ).then(events => {
       const user = serializeUser(req.user)
-      user.email = req.user.email;
+      const hideEmail = encryptEmail(req.user.email);
+      user.email = hideEmail;
       res.json({user, events});
     })
     .catch(next)
