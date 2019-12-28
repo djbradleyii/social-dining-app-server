@@ -54,7 +54,7 @@ const UsersService = {
     },
     getAllEventsByUserId(knex, user_id){
         /* Get's all of the events that the User is scheduled to attend for Dashboard on client */
-        return knex.raw(`select events.id as event_id, events.organizer as organizer_id, (select users.fname from users where events.organizer = users.id) as Organizer, events.restaurant, events.address, events."date", events."time", events.event_purpose, events.description 
+        return knex.raw(`select events.id as event_id, events.organizer as organizer_id, events.title, (select users.fname from users where events.organizer = users.id) as Organizer, events.restaurant, events.address, events."date", events."time", events.event_purpose, events.description 
         from 
         attendees 
         inner join 
