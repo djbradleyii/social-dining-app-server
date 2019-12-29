@@ -13,7 +13,7 @@ describe('Users Endpoints', function() {
   before('make knex instance', () => {
     db = knex({
       client: 'pg',
-      connection: process.env.TEST_DB_URL,
+      connection: process.env.TEST_DATABASE_URL,
     })
     app.set('db', db)
   })
@@ -552,7 +552,7 @@ describe('Users Endpoints', function() {
   })
 
 
-      describe(`Protected endpoints`, () => {
+      describe.only(`Protected endpoints`, () => {
         beforeEach('insert users', () => {
           return db
             .into('users')
@@ -567,6 +567,10 @@ describe('Users Endpoints', function() {
           {
             name: 'GET /api/users/:user_id',
             path: '/api/users/1'
+          },
+          {
+            name: 'POST /api/auth/refresh',
+            path: '/api/auth/refresh'
           },
         ]
       protectedEndpoints.forEach(endpoint => {

@@ -12,6 +12,15 @@ function seedUsers(users) {
   return preppedUsers;
 }
 
+function makeAuthHeader(user, secret = process.env.JWT_SECRET) { 
+  const token = jwt.sign({ email: user.email }, secret, {
+    subject: user.email,
+    expiresIn: process.env.JWT_EXPIRY,
+    algorithm: 'HS256',
+  })
+  return `Bearer ${token}`
+}
+
 describe('Auth Endpoints', function() {
   let db
   const testUsers = makeUsersArray();
@@ -20,7 +29,7 @@ describe('Auth Endpoints', function() {
   before('make knex instance', () => {
     db = knex({
       client: 'pg',
-      connection: process.env.TEST_DB_URL,
+      connection: process.env.TEST_DATABASE_URL,
     })
     app.set('db', db)
   })
@@ -85,6 +94,7 @@ describe('Auth Endpoints', function() {
        process.env.JWT_SECRET,
        {
          subject: testUsers[0].email,
+         expiresIn: process.env.JWT_EXPIRY,
          algorithm: 'HS256',
        }
      )
@@ -95,5 +105,32 @@ describe('Auth Endpoints', function() {
                 authToken: expectedToken
         })
    })
+  })
+
+  describe(`POST /api/auth/refresh`, () => {
+    const preppedUsers = seedUsers(testUsers);
+    beforeEach('insert users', () => {
+        return db
+          .into('users')
+          .insert(preppedUsers)
+      })
+
+    it(`responds 200 and JWT auth token using secret`, () => {
+      const expectedToken = jwt.sign(
+        { user_id: testUsers[0].id },
+        process.env.JWT_SECRET,
+        {
+          subject: testUsers[0].email,
+          expiresIn: process.env.JWT_EXPIRY,
+          algorithm: 'HS256',
+        }
+      )
+      return supertest(app)
+        .post('/api/auth/refresh')
+        .set('Authorization', makeAuthHeader(testUsers[0]))
+        .expect(200, {
+          authToken: expectedToken,
+        })
+    })
   })
 })
