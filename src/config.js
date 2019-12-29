@@ -5,4 +5,5 @@ module.exports = {
     DB_URL: process.env.DB_URL || 'postgresql://dbradley:password@localhost/social-dining-app',
     TEST_DB_URL:'postgresql://dbradley:password@localhost/social-dining-app-test',
     JWT_SECRET: process.env.JWT_SECRET || 'superdupersecretword',
+    JWT_EXPIRY: process.env.JWT_EXPIRY || '12h',
   }
