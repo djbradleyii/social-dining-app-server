@@ -19,11 +19,14 @@ const morganOption = (NODE_ENV === 'production')
 app.use(morgan(morganOption));
 app.use(express.json());
 app.use(helmet());
-app.use(
+/* app.use(
   cors({
     origin: CLIENT_ORIGIN
   })
-); 
+);  */
+
+app.use(cors());
+
 
 app.use('/api/users', usersRouter);
 app.use('/api/events', eventsRouter);
