@@ -89,7 +89,7 @@ const UsersService = {
     
         // password contains digit, using a regex here
         if (!REGEX_UPPER_LOWER_NUMBER_SPECIAL.test(password)) {
-            return 'Password must contain 1 upper case, lower case, number and special character';
+            return 'Password must contain 1 upper case, lower case, number and special character (!@#$%^&)';
         } 
         return null;
     },
