@@ -344,7 +344,7 @@ describe('Users Endpoints', function() {
         return supertest(app)
           .post('/api/users')
           .send(userPasswordNotComplex)
-          .expect(400, { error: `Password must contain 1 upper case, lower case, number and special character` })
+          .expect(400, { error: `Password must contain 1 upper case, lower case, number and special character (!@#$%^&)` })
       })
 
       it(`responds 400 'Email already taken' when email isn't unique`, () => {
@@ -552,7 +552,7 @@ describe('Users Endpoints', function() {
   })
 
 
-      describe.only(`Protected endpoints`, () => {
+      describe(`Protected endpoints`, () => {
         beforeEach('insert users', () => {
           return db
             .into('users')
@@ -562,38 +562,38 @@ describe('Users Endpoints', function() {
       const protectedEndpoints = [
           {
             name: 'GET /api/users/',
-            path: '/api/users/'
+            path: '/api/users/',
+            method: supertest(app).get
           },
           {
             name: 'GET /api/users/:user_id',
-            path: '/api/users/1'
+            path: '/api/users/1',
+            method: supertest(app).get
           },
           {
             name: 'POST /api/auth/refresh',
-            path: '/api/auth/refresh'
+            path: '/api/auth/refresh',
+            method: supertest(app).post
           },
         ]
       protectedEndpoints.forEach(endpoint => {
       describe(endpoint.name, () => {
         it(`responds 401 'Missing bearer token' when no bearer token`, () => {
-          return supertest(app)
-            .get(endpoint.path)
+          return endpoint.method(endpoint.path)
             .expect(401, { error: `Missing bearer token` })
         })
 
         it(`responds 401 'Unauthorized request' when invalid JWT secret`, () => {
           const validUser = testUsers[0];
           const invalidSecret = 'bad-secret';
-          return supertest(app)
-          .get(endpoint.path)
+          return endpoint.method(endpoint.path)
           .set('Authorization', makeAuthHeader(validUser, invalidSecret))
           .expect(401, { error: `Unauthorized request` })
         })
 
         it(`responds 401 'Unauthorized request' when invalid sub in payload`, () => {
           const invalidUser = { email: 'user-not-existy', id: 1 }
-               return supertest(app)
-              .get(endpoint.path)
+               return endpoint.method(endpoint.path)
               .set('Authorization', makeAuthHeader(invalidUser))
               .expect(401, { error: `Unauthorized request` })
         })
