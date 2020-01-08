@@ -2,24 +2,24 @@
 
 ## API Documentation
 
-* _Endpoints
-  * __/api/users
+* **Endpoints**
+  * **/api/users**
     * GET
     * POST
     * PATCH
     * DELETE
     * _/:user_id
       * GET
-    * _/all/events
+    * **/all/events**
       * GET
-  * _/api/events
+  * **/api/events**
     * GET
     * POST
-    * _/:event_id
+    * **/:event_id**
       * GET
       * PATCH
       * DELETE
-  * _/api/attendees
+  * **/api/attendees**
     * GET
     * POST
     * DELETE
