@@ -74,9 +74,7 @@ const UsersService = {
   validatePassword(password) {
     // password length
     if (password.length < 8 || password.length > 72) {
-      return res
-        .status(400)
-        .send('Password must be between 8 and 72 characters');
+      return 'Password must be between 8 and 72 characters';
     }
 
     if (password.startsWith(' ') || password.endsWith(' ')) {
