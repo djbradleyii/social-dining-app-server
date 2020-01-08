@@ -3,7 +3,7 @@
 ## API Documentation
 
 * _Endpoints
-  * _/api/users
+  * __/api/users
     * GET
     * POST
     * PATCH
