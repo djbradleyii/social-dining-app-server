@@ -19,7 +19,7 @@ const EventsService = {
         from events
         join
         users on events.organizer = users.id
-        where (title || address || restaurant || event_purpose || description) like '%${keyword}%'`)
+        where (title || address || restaurant || event_purpose || description) ILIKE '%${keyword}%'`)
       .then((res) => res.rows);
   },
   getAllAttendeesByEventId(knex, event_id) {
