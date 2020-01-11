@@ -1,4 +1,5 @@
 # Social Dining App API
+Social Dining App Server serving up the RESTful API to the Social Dining App Client. The API follows REST best practices with the endpoints below utilized within the Front End Client. 
 
 ## API Documentation
 
