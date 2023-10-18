@@ -1,8 +1,8 @@
 module.exports = {
   PORT: process.env.PORT || 8000,
   NODE_ENV: process.env.NODE_ENV || "development",
-  //CLIENT_ORIGIN: "https://social-dining-app-client.onrender.com",
-  CLIENT_ORIGIN: "http://localhost:3000",
+  CLIENT_ORIGIN: "https://social-dining-app-client.onrender.com",
+  //CLIENT_ORIGIN: "http://localhost:3000",
   DATABASE_URL:
     process.env.DATABASE_URL ||
     "postgresql://sd_admin:password@localhost/socialdining",
